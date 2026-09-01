@@ -1,0 +1,28 @@
+# API 키 · 자격증명
+.env
+*.key
+secrets.*
+config_local.*
+
+# 수집 데이터 (용량 문제로 저장소에 포함하지 않음)
+data/raw/
+data/interim/
+data/processed/
+*.parquet
+*.csv
+
+# 체크포인트 · 로그
+checkpoints/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Office 임시 파일
+~$*.docx
+~$*.xlsx
