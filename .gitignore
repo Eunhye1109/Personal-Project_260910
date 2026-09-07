@@ -10,6 +10,8 @@ data/interim/
 data/processed/
 *.parquet
 *.csv
+# 단, outputs/ 의 작은 참조표(매핑표 등)는 산출물이므로 포함한다
+!outputs/*.csv
 
 # 체크포인트 · 로그
 checkpoints/
