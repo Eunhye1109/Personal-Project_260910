@@ -59,17 +59,22 @@ def get(name: str, prompt: str | None = None, default: str = "") -> str:
         if value:
             return value
 
-    if default:
-        return default
-
+    # 물어볼 문구가 없으면 조용히 기본값(또는 빈 값)을 쓴다.
     if prompt is None:
-        return ""
+        return default
 
     print(f"\n[{name}] 값이 설정돼 있지 않습니다.")
     print(f"  {prompt}")
+    if default:
+        print(f"  그냥 엔터를 치면 기본값을 씁니다: {default}")
     value = input(f"  {name} = ").strip()
+
     if not value:
+        if default:
+            print("  기본값을 씁니다.\n")
+            return default
         raise SystemExit("[중단] 값이 비어 있습니다.")
+
     _append_home_env(name, value)
     print(f"  저장했습니다: {HOME_ENV}  (이 PC에만 남습니다)\n")
     return value

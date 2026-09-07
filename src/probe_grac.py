@@ -207,7 +207,8 @@ def main() -> None:
     endpoint = apikey.get(
         "GRAC_GAME_ENDPOINT",
         prompt=("게임물관리위원회 게임 정보 API 호출주소.\n"
-                f"   기본값을 쓰려면 그대로 두세요: {DEFAULT_ENDPOINT}"),
+                "   공공데이터포털 15120667 페이지의 '바로가기' 링크 주소를 붙여넣으세요.\n"
+                "   (활용신청 절차가 없는 데이터셋이라 인증키가 아니라 주소가 관건입니다)"),
         default=DEFAULT_ENDPOINT,
     )
     key = apikey.get("DATA_GO_KR_KEY", prompt=None)   # 없어도 진행 (키 불필요일 수 있음)
@@ -222,7 +223,10 @@ def main() -> None:
     got = try_key_styles(endpoint, key)
     if not got:
         print("\n[중단] 응답을 받지 못했습니다.")
-        print("  공공데이터포털에서 '게임물관리위원회_게임 정보'(15120667) 활용신청을 했는지 확인하세요.")
+        print("  이 API는 공공데이터포털에 활용신청 절차가 없다(260907 확인). 포털 페이지에는")
+        print("  '활용신청' 대신 '바로가기' 버튼만 있으므로, 키 문제가 아니라 주소 문제일 가능성이 크다.")
+        print("  포털의 '바로가기' 링크 주소를 확인해 GRAC_GAME_ENDPOINT 를 그 값으로 다시 시도하세요.")
+        print(f"  (지금 쓴 주소: {endpoint})")
         sys.exit(1)
 
     body, params = got
