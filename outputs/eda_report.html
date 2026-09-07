@@ -1,0 +1,477 @@
+<title>비디오물 등급분류 현황</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#FBFAF7; --surface:#FFFFFF; --sunk:#F4F1EB;
+  --ink:#191614; --ink2:#4A423A; --muted:#6E655B; --line:#E2DCD2; --line2:#D0C8BC;
+  --s1:#F2DFD1; --s2:#DDAE8B; --s3:#C47C4E; --s4:#9C4F26; --s5:#5E2A11;
+  --catA:#1268C8; --catB:#C05F1B;
+  --dvNeg:#1268C8; --dvMid:#DAD4CB; --dvPos:#C05F1B;
+  --plain:#8C8175;
+  --shadow:0 1px 2px rgba(25,22,20,.05), 0 8px 24px -18px rgba(25,22,20,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14110E; --surface:#1D1915; --sunk:#231E19;
+    --ink:#F3EEE6; --ink2:#D6CDC1; --muted:#A3988A; --line:#332C25; --line2:#463D33;
+    --s1:#4B2E1C; --s2:#7A4A2A; --s3:#A96739; --s4:#D2915C; --s5:#F0C79C;
+    --catA:#5EA3F0; --catB:#E4934F;
+    --dvNeg:#5EA3F0; --dvMid:#3A332B; --dvPos:#E4934F;
+    --plain:#7E7365;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14110E; --surface:#1D1915; --sunk:#231E19;
+  --ink:#F3EEE6; --ink2:#D6CDC1; --muted:#A3988A; --line:#332C25; --line2:#463D33;
+  --s1:#4B2E1C; --s2:#7A4A2A; --s3:#A96739; --s4:#D2915C; --s5:#F0C79C;
+  --catA:#5EA3F0; --catB:#E4934F;
+  --dvNeg:#5EA3F0; --dvMid:#3A332B; --dvPos:#E4934F;
+  --plain:#7E7365;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Sans KR','Malgun Gothic',system-ui,sans-serif;
+  font-weight:300; line-height:1.75; font-size:15px;
+  padding:0 20px 100px;
+}
+.wrap{max-width:940px;margin:0 auto}
+h1,h2,h3{font-family:'Gowun Batang','Batang',serif;font-weight:700;text-wrap:balance;line-height:1.3}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── header ── */
+header{padding:72px 0 40px;border-bottom:1px solid var(--line2)}
+.eyebrow{
+  font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;margin-bottom:18px;
+  font-family:'IBM Plex Mono',monospace;
+}
+h1{font-size:clamp(30px,5vw,46px);margin:0 0 18px}
+.lede{font-size:17px;color:var(--ink2);max-width:60ch;margin:0}
+
+.facts{display:flex;flex-wrap:wrap;gap:0;margin-top:36px;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--surface)}
+.fact{flex:1 1 150px;padding:16px 20px;border-right:1px solid var(--line)}
+.fact:last-child{border-right:0}
+.fact dt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.fact dd{margin:0;font-size:22px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+.fact dd small{font-size:13px;font-weight:300;color:var(--muted)}
+
+.notice{
+  margin-top:22px;padding:12px 16px;background:var(--sunk);
+  border-left:3px solid var(--s3);border-radius:2px;
+  font-size:13.5px;color:var(--ink2);
+}
+
+/* ── sections ── */
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+.shead{display:flex;gap:16px;align-items:baseline;margin-bottom:8px}
+.snum{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);
+  border:1px solid var(--line2);border-radius:2px;padding:2px 7px;flex:none;
+}
+h2{font-size:24px;margin:0}
+.sdesc{color:var(--ink2);max-width:62ch;margin:10px 0 0}
+
+figure{margin:30px 0 0}
+figcaption{font-size:13px;color:var(--muted);margin-top:12px;max-width:62ch}
+.scroll{overflow-x:auto;padding-bottom:4px}
+
+/* ── legend ── */
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:16px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:2px;flex:none}
+
+/* ── findings ── */
+.finds{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:30px}
+.find{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px;box-shadow:var(--shadow)}
+.find h3{font-size:16px;margin:0 0 8px}
+.find p{margin:0;font-size:14px;color:var(--ink2);line-height:1.65}
+.find .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:10px}
+
+/* ── tables ── */
+details{margin-top:16px}
+summary{cursor:pointer;font-size:13px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+summary:hover{color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--muted);font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── open items ── */
+ul.items{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px}
+ul.items li{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+ul.items li:last-child{border-bottom:0}
+.pill{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+  padding:3px 8px;border-radius:2px;white-space:nowrap;text-transform:uppercase;
+}
+.pill.open{background:var(--s1);color:var(--s5)}
+.pill.hold{background:var(--sunk);color:var(--muted);border:1px solid var(--line2)}
+.pill.done{background:var(--sunk);color:var(--ink2);border:1px solid var(--line2)}
+:root[data-theme="dark"] .pill.open,
+:root:not([data-theme="light"]) .pill.open{color:var(--s5);background:var(--s1)}
+
+/* ── tooltip ── */
+#tip{
+  position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--ink);color:var(--paper);font-size:12px;line-height:1.5;
+  padding:7px 10px;border-radius:3px;z-index:50;max-width:230px;
+  font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums;
+}
+[data-tip]{cursor:default}
+[data-tip]:focus-visible{outline:2px solid var(--catA);outline-offset:1px}
+svg text{font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums}
+.axis{font-size:11px;fill:var(--muted)}
+.vlab{font-size:11px;fill:var(--ink2)}
+.rowlab{font-size:12px;fill:var(--ink2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+footer{padding:44px 0 0;color:var(--muted);font-size:13px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">현황 EDA · 2026-09-02</div>
+  <h1>비디오물 등급분류 현황</h1>
+  <p class="lede">영상물등급위원회 Open API로 수집한 비디오물 등급분류 결과를 정제하고, 관람등급과 내용정보의 분포·관계를 살펴본 1차 분석이다.</p>
+
+  <dl class="facts">
+    <div class="fact"><dt>분석 대상</dt><dd>99,000<small> 건</small></dd></div>
+    <div class="fact"><dt>기간</dt><dd>2009<small>-01 ~ </small>2023<small>-03</small></dd></div>
+    <div class="fact"><dt>수집 진행</dt><dd>74<small>% / 134,197건</small></dd></div>
+    <div class="fact"><dt>내용정보 항목</dt><dd>7<small> 종 · 1~5 척도</small></dd></div>
+  </dl>
+
+  <p class="notice"><strong>수집이 아직 끝나지 않았다.</strong> API가 약 99,000건 지점부터 깊은 페이지 조회를 거부해(<span class="mono">resultCode 99</span>) 2023년 3월 이후 구간이 빠져 있다. 아래 결과 중 <strong>2023년 값은 1~3월분</strong>이며, 연도별 추이의 마지막 지점은 확정치가 아니다. 내용정보 분석에 필요한 구간은 모두 포함돼 있다.</p>
+</header>
+
+<section>
+  <div class="shead"><span class="snum">요약</span><h2>먼저 볼 것 세 가지</h2></div>
+  <div class="finds">
+    <div class="find">
+      <span class="tag">구조 변화</span>
+      <h3>청소년관람불가가 82%에서 17%로</h3>
+      <p>2009년에는 등급분류된 비디오물의 82%가 청소년관람불가였다. 2023년에는 17%다. 같은 기간 전체관람가는 9%에서 48%로 올랐다. 심의 기준이 아니라 <strong>등급분류를 신청하는 대상 자체가 바뀐 것</strong>으로 보인다.</p>
+    </div>
+    <div class="find">
+      <span class="tag">표기 체계</span>
+      <h3>내용정보 표기가 2017년 5월에 바뀐다</h3>
+      <p>2017년 4월까지는 <span class="mono">1단계-낮음</span> 식 5단계 표기, 그 이후로는 <span class="mono">전체관람가</span> 식 등급 표기를 쓴다. 둘 다 5단계 순서형이라 하나로 합칠 수 있다. 경계 시점 분포로 대응을 검증했다.</p>
+    </div>
+    <div class="find">
+      <span class="tag">조합 효과</span>
+      <h3>내용요소는 겹칠수록 등급을 올린다</h3>
+      <p>3단계 이상인 항목이 하나뿐이면 청소년관람불가 비율이 5%지만, 네 개가 겹치면 93%다. 다만 단조롭게 오르지 않는다 — 다섯 개에서 오히려 72%로 떨어진다.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">1</span><h2>연도별 등급 구성</h2></div>
+  <p class="sdesc">연도마다 어떤 등급이 얼마나 나왔는지를 비율로 쌓았다. 막대 왼쪽 숫자는 그해 등급분류 건수다.</p>
+
+  <figure>
+    <div class="legend" id="lg-grade"></div>
+    <div class="scroll"><svg id="c-year" width="900" height="470" role="img" aria-label="연도별 관람등급 구성 비율"></svg></div>
+    <figcaption>2016년을 기점으로 구성이 크게 움직인다. 2021년 건수가 16,129건으로 튀는 것은 그해 등급분류 신청이 몰린 결과이며, 원인은 별도 확인이 필요하다.</figcaption>
+    <details>
+      <summary>표로 보기</summary>
+      <div class="scroll"><table id="t-year"></table></div>
+    </details>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">2</span><h2>관람등급과 종별 분포</h2></div>
+  <p class="sdesc">전체 기간을 합쳤을 때의 분포다. 종별에서 성인물이 43%를 차지하는 점이 이후 해석에 계속 영향을 준다.</p>
+
+  <figure>
+    <div class="scroll"><svg id="c-grade" width="900" height="200" role="img" aria-label="관람등급 분포"></svg></div>
+    <div class="scroll"><svg id="c-kind" width="900" height="235" role="img" aria-label="종별 분포"></svg></div>
+    <figcaption>비디오물은 성인물 비중이 높다. 게임물과 비교할 때 이 구성 차이가 매체 차이로 오해되지 않도록 종별을 통제해야 한다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">3</span><h2>두 가지 표기 체계</h2></div>
+  <p class="sdesc">내용정보 7항목의 평균을 표기 체계별로 나눠 봤다. 두 체계가 같은 것을 재고 있다면 항목별 순서와 상대적 크기가 유지되어야 한다.</p>
+
+  <figure>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--catA)"></i>단계표기 · 2009-01 ~ 2017-04</span>
+      <span><i class="sw" style="background:var(--catB)"></i>등급표기 · 2017-05 ~</span>
+    </div>
+    <div class="scroll"><svg id="c-nota" width="900" height="300" role="img" aria-label="표기 체계별 내용정보 항목 평균"></svg></div>
+    <figcaption>등급표기 쪽이 전반적으로 낮은 것은 체계 차이가 아니라 그 시기에 전체관람가 비중이 커졌기 때문이다. 항목 간 상대적 순서(1·2·4·7이 높고 3·5·6이 낮음)는 두 체계에서 그대로 유지된다.</figcaption>
+    <details>
+      <summary>표로 보기</summary>
+      <div class="scroll"><table id="t-nota"></table></div>
+    </details>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">4</span><h2>등급별 내용정보 프로파일</h2></div>
+  <p class="sdesc">관람등급마다 7개 내용정보 항목이 평균 몇 단계인지를 격자로 표시했다. 색이 진할수록 높은 값이다.</p>
+
+  <figure>
+    <div class="scroll"><svg id="c-prof" width="900" height="290" role="img" aria-label="관람등급별 내용정보 항목 평균"></svg></div>
+    <figcaption>전체관람가는 7개 항목이 모두 정확히 1.00이다 — 하나라도 2단계 이상이면 전체관람가가 나오지 않는다는 뜻이다. 청소년관람불가에서는 항목 1·2·4·7만 높고 3·5·6은 낮게 유지되는데, 성인물 비중이 높은 표본의 성격이 그대로 드러난 것으로 보인다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">5</span><h2>내용요소가 겹치면</h2></div>
+  <p class="sdesc">3단계 이상인 항목이 몇 개인지에 따라 청소년관람불가 비율이 어떻게 달라지는지 봤다. 막대 옆 숫자는 해당 구간의 건수다.</p>
+
+  <figure>
+    <div class="scroll"><svg id="c-combo" width="900" height="330" role="img" aria-label="3단계 이상 항목 수별 청소년관람불가 비율"></svg></div>
+    <figcaption>0개에서 4개까지는 가파르게 오르지만 5개에서 꺾인다. 항목이 더 많이 겹치는데 제한 비율이 낮아지는 구간이 있다는 뜻이라, 특정 항목 조합이 따로 작동할 가능성이 있다. 항목명이 확정되면 어떤 조합인지 특정할 수 있다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">6</span><h2>신청등급과 결정등급</h2></div>
+  <p class="sdesc">신청자가 희망한 등급과 위원회가 결정한 등급이 다른 사례다. 전체의 11%에서 조정이 일어났다.</p>
+
+  <figure>
+    <div class="scroll"><svg id="c-adj" width="900" height="120" role="img" aria-label="신청등급 대비 결정등급 조정 비율"></svg></div>
+    <div class="scroll"><svg id="c-adjup" width="900" height="200" role="img" aria-label="상향 조정된 건의 신청등급 분포"></svg></div>
+    <figcaption>상향 조정이 하향의 두 배가 넘는다. 상향된 7,474건 중 4,210건은 전체관람가로 신청했던 건이다. 이 조정 사례는 매체 간 판정 차이를 볼 때 직접 쓸 수 있는 재료다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">7</span><h2>항목끼리 얼마나 같이 움직이나</h2></div>
+  <p class="sdesc">내용정보 7항목 사이의 상관계수다. 파란색은 음의 상관, 주황색은 양의 상관이다.</p>
+
+  <figure>
+    <div class="scroll"><svg id="c-corr" width="900" height="360" role="img" aria-label="내용정보 항목 간 상관계수 행렬"></svg></div>
+    <figcaption><strong>항목이 두 덩어리로 갈린다.</strong> 1·2·4·7이 서로 0.67~0.88로 강하게 붙어 다니고, 3·5·6이 0.43~0.71로 또 다른 덩어리를 이룬다. 두 덩어리 사이의 상관은 0에 가깝거나 음수다. 항목명이 확정되면 이 구조가 무엇을 뜻하는지 해석할 수 있다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">다음</span><h2>남은 일</h2></div>
+  <ul class="items">
+    <li><span class="pill open">최우선</span><div><strong>내용정보 항목명 확정.</strong> API가 <span class="mono">rtStdName1</span>~<span class="mono">7</span> 번호로만 주고 이름표를 주지 않는다. 어느 번호가 선정성이고 어느 번호가 폭력성인지 모르면 위 4·5·7절의 해석을 쓸 수 없다. 영등위 공개 등급분류 결과에서 개별 작품 5~10건을 대조해 순서를 밝힌다.</div></li>
+    <li><span class="pill open">진행</span><div><strong>남은 35,197건 수집.</strong> 깊은 페이지 조회가 막혀 있어 날짜 조건으로 나눠 받는 방식으로 바꿔야 한다. 검색 조건 파라미터를 확인하는 중이다.</div></li>
+    <li><span class="pill hold">보류</span><div><strong>게임물관리위원회 데이터.</strong> 해당 API는 포털을 거치지 않고 게임위 서버로 직접 붙는 구조인데 현재 접속이 차단돼 있다. 차단 해제 후 또는 다른 회선에서 수집한다.</div></li>
+    <li><span class="pill done">확인됨</span><div><strong>분석에서 제외할 필드.</strong> Y/N 플래그 6종은 99,000건 전부 <span class="mono">N</span>으로 실제 사용되지 않는다. <span class="mono">rtCoreHarmRsnNm</span>은 81% 결측이다.</div></li>
+  </ul>
+</section>
+
+<footer>
+  영상물등급위원회 비디오물 등급분류정보 조회 서비스(공공데이터포털) 수집분 99,000건 기준 · 2026-09-02 산출
+</footer>
+</div>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const SVGNS="http://www.w3.org/2000/svg";
+const el=(n,a={})=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt=n=>n.toLocaleString("ko-KR");
+
+/* ── data ── */
+const GRADES=["전체관람가","12세이상관람가","15세이상관람가","청소년관람불가","제한관람가"];
+const RAMP=["--s1","--s2","--s3","--s4","--s5"];
+const YEAR=[
+ [2009,2564,[8.9,3.7,5.0,81.9,0.4]],[2010,4602,[7.1,4.0,5.0,79.7,4.2]],
+ [2011,4773,[7.1,4.1,5.4,82.6,0.9]],[2012,4475,[10.0,2.8,3.4,83.7,0.1]],
+ [2013,5031,[10.8,2.7,5.0,81.4,0.0]],[2014,4683,[8.0,4.0,4.7,83.2,0.1]],
+ [2015,4324,[9.3,6.6,4.7,79.3,0.0]],[2016,6576,[14.2,9.8,14.5,61.5,0.0]],
+ [2017,8186,[17.6,10.4,17.7,54.3,0.0]],[2018,6809,[16.8,9.5,18.7,55.0,0.0]],
+ [2019,6608,[25.5,8.2,20.1,46.2,0.0]],[2020,7931,[37.2,9.6,16.4,36.8,0.0]],
+ [2021,16129,[49.2,14.9,17.7,18.2,0.0]],[2022,13544,[41.4,15.2,20.3,23.0,0.1]],
+ [2023,2765,[47.7,16.0,18.8,17.2,0.4]]];
+const GRADE_N=[25669,9564,13868,49603,296];
+const KIND=[["성인물",42892],["기타",29293],["극영화",13527],["뮤직비디오",7340],["애니메이션",3982],["부가영상",1963]];
+const NOTA=[[3.44,2.36],[3.34,2.05],[1.33,1.40],[3.04,2.22],[1.26,1.25],[1.21,1.37],[2.80,1.82]];
+const PROF=[[1.00,1.00,1.00,1.00,1.00,1.00,1.00],[1.79,1.22,1.34,1.58,1.23,1.30,1.29],
+            [2.77,1.84,2.13,2.37,1.71,1.92,1.97],[3.92,3.84,1.35,3.59,1.26,1.29,3.09],
+            [4.54,4.57,1.95,3.93,1.37,1.24,3.60]];
+const COMBO=[[0,35232,0.0],[1,2124,5.4],[2,5927,37.9],[3,17002,74.7],[4,30937,93.4],
+             [5,3948,71.5],[6,2094,77.5],[7,1736,86.4]];
+const ADJ=[["동일",88108,89.0],["상향 조정",7474,7.5],["하향 조정",3412,3.4]];
+const ADJUP=[["전체관람가",4210],["12세이상관람가",1633],["15세이상관람가",1338],["청소년관람불가",293]];
+const CORR=[[1.00,0.88,0.15,0.86,0.14,0.12,0.71],[0.88,1.00,-0.05,0.81,-0.03,-0.01,0.68],
+            [0.15,-0.05,1.00,0.09,0.71,0.55,0.13],[0.86,0.81,0.09,1.00,0.03,0.12,0.67],
+            [0.14,-0.03,0.71,0.03,1.00,0.43,0.15],[0.12,-0.01,0.55,0.12,0.43,1.00,0.13],
+            [0.71,0.68,0.13,0.67,0.15,0.13,1.00]];
+
+/* ── tooltip ── */
+const tip=document.getElementById("tip");
+function bindTip(node,text){
+  node.setAttribute("data-tip",text); node.setAttribute("tabindex","0");
+  const show=e=>{tip.textContent=text;tip.style.opacity="1";
+    const r=node.getBoundingClientRect();
+    tip.style.left=Math.min(window.innerWidth-240,(e.clientX||r.left)+12)+"px";
+    tip.style.top=((e.clientY||r.top)-14)+"px";};
+  node.addEventListener("mousemove",show); node.addEventListener("focus",show);
+  node.addEventListener("mouseleave",()=>tip.style.opacity="0");
+  node.addEventListener("blur",()=>tip.style.opacity="0");
+}
+
+/* ── 1. year composition ── */
+(function(){
+  const lg=document.getElementById("lg-grade");
+  GRADES.forEach((g,i)=>{const s=document.createElement("span");
+    s.innerHTML=`<i class="sw" style="background:var(${RAMP[i]})"></i>${g}`;lg.appendChild(s);});
+
+  const svg=document.getElementById("c-year"),L=112,R=52,W=900-L-R,H=28,GAP=3;
+  YEAR.forEach(([y,n,p],r)=>{
+    const yy=8+r*(H+GAP);
+    const t=el("text",{x:0,y:yy+18,class:"rowlab"}); t.textContent=y; svg.appendChild(t);
+    const c=el("text",{x:L-10,y:yy+18,class:"axis","text-anchor":"end"}); c.textContent=fmt(n); svg.appendChild(c);
+    let x=L;
+    p.forEach((v,i)=>{
+      if(v<=0)return;
+      const w=W*v/100;
+      const rect=el("rect",{x:x,y:yy,width:Math.max(w-2,1),height:H,rx:2,fill:`var(${RAMP[i]})`});
+      bindTip(rect,`${y} · ${GRADES[i]}  ${v}% (약 ${fmt(Math.round(n*v/100))}건)`);
+      svg.appendChild(rect);
+      if(v>=12){const lb=el("text",{x:x+6,y:yy+18,class:"vlab",fill:i>=3?"var(--paper)":"var(--ink)"});
+        lb.textContent=v.toFixed(0)+"%";svg.appendChild(lb);}
+      x+=w;
+    });
+  });
+  const tb=document.getElementById("t-year");
+  tb.innerHTML=`<thead><tr><th>연도</th><th>건수</th>${GRADES.map(g=>`<th>${g}</th>`).join("")}</tr></thead>`
+   +`<tbody>${YEAR.map(([y,n,p])=>`<tr><td>${y}</td><td>${fmt(n)}</td>${p.map(v=>`<td>${v.toFixed(1)}%</td>`).join("")}</tr>`).join("")}</tbody>`;
+})();
+
+/* ── 2. grade & kind ── */
+function hbars(id,rows,colorFn,total,labelW){
+  const svg=document.getElementById(id),L=labelW,R=86,W=900-L-R,H=26,GAP=8;
+  const max=Math.max(...rows.map(r=>r[1]));
+  rows.forEach(([name,n],i)=>{
+    const y=8+i*(H+GAP);
+    const t=el("text",{x:0,y:y+18,class:"rowlab"});t.textContent=name;svg.appendChild(t);
+    const w=Math.max(W*n/max,2);
+    const rect=el("rect",{x:L,y:y,width:w,height:H,rx:2,fill:colorFn(i)});
+    bindTip(rect,`${name}  ${fmt(n)}건 · ${(n/total*100).toFixed(1)}%`);
+    svg.appendChild(rect);
+    const v=el("text",{x:L+w+9,y:y+18,class:"vlab"});
+    v.textContent=`${fmt(n)}  ${(n/total*100).toFixed(1)}%`;svg.appendChild(v);
+  });
+}
+hbars("c-grade",GRADES.map((g,i)=>[g,GRADE_N[i]]),i=>`var(${RAMP[i]})`,99000,120);
+hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
+
+/* ── 3. notation ── */
+(function(){
+  const svg=document.getElementById("c-nota"),L=104,B=44,W=900-L-40,H=300-B-16;
+  const max=4, band=W/7;
+  [1,2,3,4].forEach(v=>{
+    const y=16+H-H*v/max;
+    svg.appendChild(el("line",{x1:L,x2:L+W,y1:y,y2:y,stroke:"var(--line)","stroke-width":1}));
+    const t=el("text",{x:L-10,y:y+4,class:"axis","text-anchor":"end"});t.textContent=v;svg.appendChild(t);
+  });
+  NOTA.forEach((pair,i)=>{
+    pair.forEach((v,k)=>{
+      const bw=band*0.30, x=L+band*i+band*0.16+k*(bw+4), h=H*v/max, y=16+H-h;
+      const rect=el("rect",{x:x,y:y,width:bw,height:h,rx:2,fill:k?"var(--catB)":"var(--catA)"});
+      bindTip(rect,`rtStdName${i+1} · ${k?"등급표기":"단계표기"}  평균 ${v.toFixed(2)}`);
+      svg.appendChild(rect);
+      const lb=el("text",{x:x+bw/2,y:y-6,class:"vlab","text-anchor":"middle"});
+      lb.textContent=v.toFixed(2);svg.appendChild(lb);
+    });
+    const t=el("text",{x:L+band*i+band/2,y:16+H+22,class:"axis","text-anchor":"middle"});
+    t.textContent="항목 "+(i+1);svg.appendChild(t);
+  });
+  const yl=el("text",{x:L-10,y:16+H+22,class:"axis","text-anchor":"end"});yl.textContent="평균";svg.appendChild(yl);
+  document.getElementById("t-nota").innerHTML=
+    `<thead><tr><th>항목</th><th>단계표기</th><th>등급표기</th><th>차이</th></tr></thead><tbody>`
+    +NOTA.map((p,i)=>`<tr><td>rtStdName${i+1}</td><td>${p[0].toFixed(2)}</td><td>${p[1].toFixed(2)}</td><td>${(p[1]-p[0]).toFixed(2)}</td></tr>`).join("")
+    +`</tbody>`;
+})();
+
+/* ── 4. profile heatmap ── */
+(function(){
+  const svg=document.getElementById("c-prof"),L=130,T=34,CW=95,CH=42,GAP=3;
+  for(let c=0;c<7;c++){
+    const t=el("text",{x:L+c*CW+CW/2,y:T-12,class:"axis","text-anchor":"middle"});
+    t.textContent="항목 "+(c+1);svg.appendChild(t);
+  }
+  PROF.forEach((row,r)=>{
+    const t=el("text",{x:0,y:T+r*CH+CH/2+4,class:"rowlab"});t.textContent=GRADES[r];svg.appendChild(t);
+    row.forEach((v,c)=>{
+      const step=Math.min(4,Math.max(0,Math.round(v)-1));
+      const rect=el("rect",{x:L+c*CW,y:T+r*CH,width:CW-GAP,height:CH-GAP,rx:2,fill:`var(${RAMP[step]})`});
+      bindTip(rect,`${GRADES[r]} · 항목 ${c+1}  평균 ${v.toFixed(2)}단계`);
+      svg.appendChild(rect);
+      const tx=el("text",{x:L+c*CW+(CW-GAP)/2,y:T+r*CH+CH/2+4,class:"vlab","text-anchor":"middle",
+        fill:step>=3?"var(--paper)":"var(--ink)"});
+      tx.textContent=v.toFixed(2);svg.appendChild(tx);
+    });
+  });
+})();
+
+/* ── 5. combo ── */
+(function(){
+  const svg=document.getElementById("c-combo"),L=150,R=120,W=900-L-R,H=30,GAP=7;
+  COMBO.forEach(([k,n,pct],i)=>{
+    const y=8+i*(H+GAP);
+    const t=el("text",{x:0,y:y+20,class:"rowlab"});t.textContent=`${k}개 항목`;svg.appendChild(t);
+    const w=Math.max(W*pct/100,1.5);
+    const step=Math.min(4,Math.floor(pct/25));
+    const rect=el("rect",{x:L,y:y,width:w,height:H,rx:2,fill:`var(${RAMP[step]})`});
+    bindTip(rect,`3단계 이상 ${k}개  청소년관람불가 ${pct}% · ${fmt(n)}건`);
+    svg.appendChild(rect);
+    const v=el("text",{x:L+w+9,y:y+20,class:"vlab"});
+    v.textContent=`${pct}%   ${fmt(n)}건`;svg.appendChild(v);
+  });
+  const cap=el("text",{x:L,y:8+COMBO.length*(H+GAP)+18,class:"axis"});
+  cap.textContent="가로축: 청소년관람불가 비율 (0~100%)";svg.appendChild(cap);
+})();
+
+/* ── 6. adjustment ── */
+(function(){
+  const svg=document.getElementById("c-adj"),L=0,W=900,H=34;
+  const colors=["var(--dvMid)","var(--dvPos)","var(--dvNeg)"];
+  let x=0;
+  ADJ.forEach(([name,n,pct],i)=>{
+    const w=W*pct/100;
+    const rect=el("rect",{x:x,y:26,width:Math.max(w-2,1),height:H,rx:2,fill:colors[i]});
+    bindTip(rect,`${name}  ${fmt(n)}건 · ${pct}%`);
+    svg.appendChild(rect);
+    const t=el("text",{x:x,y:18,class:"vlab"});
+    t.textContent=`${name} ${pct}%`;svg.appendChild(t);
+    const c=el("text",{x:x,y:82,class:"axis"});c.textContent=fmt(n)+"건";svg.appendChild(c);
+    x+=w;
+  });
+  hbars("c-adjup",ADJUP,()=> "var(--dvPos)",7474,130);
+})();
+
+/* ── 7. correlation ── */
+(function(){
+  const svg=document.getElementById("c-corr"),L=64,T=40,C=44,GAP=3;
+  const mix=v=>{
+    if(v>=0) return {fill:"var(--dvPos)",op:Math.max(.10,Math.abs(v))};
+    return {fill:"var(--dvNeg)",op:Math.max(.10,Math.abs(v))};
+  };
+  for(let i=0;i<7;i++){
+    const th=el("text",{x:L+i*C+C/2,y:T-12,class:"axis","text-anchor":"middle"});th.textContent=i+1;svg.appendChild(th);
+    const tl=el("text",{x:L-12,y:T+i*C+C/2+4,class:"axis","text-anchor":"end"});tl.textContent=i+1;svg.appendChild(tl);
+  }
+  CORR.forEach((row,r)=>row.forEach((v,c)=>{
+    const bg=el("rect",{x:L+c*C,y:T+r*C,width:C-GAP,height:C-GAP,rx:2,fill:"var(--dvMid)"});
+    svg.appendChild(bg);
+    const m=mix(v);
+    const rect=el("rect",{x:L+c*C,y:T+r*C,width:C-GAP,height:C-GAP,rx:2,fill:m.fill,"fill-opacity":m.op});
+    bindTip(rect,`항목 ${r+1} ↔ 항목 ${c+1}  상관 ${v.toFixed(2)}`);
+    svg.appendChild(rect);
+    const t=el("text",{x:L+c*C+(C-GAP)/2,y:T+r*C+C/2+3,class:"vlab","text-anchor":"middle",
+      "font-size":"10.5"});
+    t.textContent=v.toFixed(2);svg.appendChild(t);
+  }));
+  const note=el("text",{x:L,y:T+7*C+26,class:"axis"});
+  note.textContent="1·2·4·7 덩어리와 3·5·6 덩어리로 갈린다";svg.appendChild(note);
+})();
+</script>
