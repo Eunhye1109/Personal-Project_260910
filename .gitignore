@@ -26,3 +26,6 @@ venv/
 # Office 임시 파일
 ~$*.docx
 ~$*.xlsx
+
+# 개인 PC 홈 폴더 설정 사본이 실수로 들어오는 경우
+.gucc_rating_analysis.env
