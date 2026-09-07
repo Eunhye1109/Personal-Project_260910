@@ -209,7 +209,7 @@ footer{padding:44px 0 0;color:var(--muted);font-size:13px}
       <span><i class="sw" style="background:var(--catB)"></i>등급표기 · 2017-05 ~</span>
     </div>
     <div class="scroll"><svg id="c-nota" width="900" height="300" role="img" aria-label="표기 체계별 내용정보 항목 평균"></svg></div>
-    <figcaption>등급표기 쪽이 전반적으로 낮은 것은 체계 차이가 아니라 그 시기에 전체관람가 비중이 커졌기 때문이다. 항목 간 상대적 순서(1·2·4·7이 높고 3·5·6이 낮음)는 두 체계에서 그대로 유지된다.</figcaption>
+    <figcaption>등급표기 쪽이 전반적으로 낮은 것은 체계 차이가 아니라 그 시기에 전체관람가 비중이 커졌기 때문이다. 항목 간 상대적 순서(주제·선정성·대사·모방위험이 높고 폭력성·공포·약물이 낮음)는 두 체계에서 그대로 유지된다.</figcaption>
     <details>
       <summary>표로 보기</summary>
       <div class="scroll"><table id="t-nota"></table></div>
@@ -253,7 +253,7 @@ footer{padding:44px 0 0;color:var(--muted);font-size:13px}
   <p class="sdesc">내용정보 7항목 사이의 상관계수다. 파란색은 음의 상관, 주황색은 양의 상관이다.</p>
 
   <figure>
-    <div class="scroll"><svg id="c-corr" width="900" height="360" role="img" aria-label="내용정보 항목 간 상관계수 행렬"></svg></div>
+    <div class="scroll"><svg id="c-corr" width="900" height="700" role="img" aria-label="내용정보 항목 간 상관계수 행렬"></svg></div>
     <figcaption><strong>항목이 두 덩어리로 갈린다.</strong> <strong>주제·선정성·대사·모방위험</strong>이 서로 0.67~0.88로 강하게 붙어 다니고, <strong>폭력성·공포·약물</strong>이 0.43~0.71로 또 다른 덩어리를 이룬다. 두 덩어리 사이의 상관은 0에 가깝거나 음수다. 2026-09-07에 항목명이 확정되면서 이 구조가 읽힌다 — 앞 덩어리는 성인물 축, 뒤 덩어리는 극영화·애니메이션 축이다. 실제로 결정사유로 지목되는 항목이 성인물은 선정성(99.9%), 극영화는 폭력성(54.1%)으로 갈린다.</figcaption>
   </figure>
 </section>
@@ -392,7 +392,7 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
     pair.forEach((v,k)=>{
       const bw=band*0.30, x=L+band*i+band*0.16+k*(bw+4), h=H*v/max, y=16+H-h;
       const rect=el("rect",{x:x,y:y,width:bw,height:h,rx:2,fill:k?"var(--catB)":"var(--catA)"});
-      bindTip(rect,`rtStdName${i+1} · ${k?"등급표기":"단계표기"}  평균 ${v.toFixed(2)}`);
+      bindTip(rect,`${ITEMS[i]} (rtStdName${i+1}) · ${k?"등급표기":"단계표기"}  평균 ${v.toFixed(2)}`);
       svg.appendChild(rect);
       const lb=el("text",{x:x+bw/2,y:y-6,class:"vlab","text-anchor":"middle"});
       lb.textContent=v.toFixed(2);svg.appendChild(lb);
@@ -403,7 +403,7 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
   const yl=el("text",{x:L-10,y:16+H+22,class:"axis","text-anchor":"end"});yl.textContent="평균";svg.appendChild(yl);
   document.getElementById("t-nota").innerHTML=
     `<thead><tr><th>항목</th><th>단계표기</th><th>등급표기</th><th>차이</th></tr></thead><tbody>`
-    +NOTA.map((p,i)=>`<tr><td>rtStdName${i+1}</td><td>${p[0].toFixed(2)}</td><td>${p[1].toFixed(2)}</td><td>${(p[1]-p[0]).toFixed(2)}</td></tr>`).join("")
+    +NOTA.map((p,i)=>`<tr><td>${ITEMS[i]} <span class="mono">rtStdName${i+1}</span></td><td>${p[0].toFixed(2)}</td><td>${p[1].toFixed(2)}</td><td>${(p[1]-p[0]).toFixed(2)}</td></tr>`).join("")
     +`</tbody>`;
 })();
 
@@ -419,7 +419,7 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
     row.forEach((v,c)=>{
       const step=Math.min(4,Math.max(0,Math.round(v)-1));
       const rect=el("rect",{x:L+c*CW,y:T+r*CH,width:CW-GAP,height:CH-GAP,rx:2,fill:`var(${RAMP[step]})`});
-      bindTip(rect,`${GRADES[r]} · 항목 ${c+1}  평균 ${v.toFixed(2)}단계`);
+      bindTip(rect,`${GRADES[r]} · ${ITEMS[c]}  평균 ${v.toFixed(2)}단계`);
       svg.appendChild(rect);
       const tx=el("text",{x:L+c*CW+(CW-GAP)/2,y:T+r*CH+CH/2+4,class:"vlab","text-anchor":"middle",
         fill:step>=3?"var(--paper)":"var(--ink)"});
@@ -443,7 +443,7 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
     v.textContent=`${pct}%   ${fmt(n)}건`;svg.appendChild(v);
   });
   const cap=el("text",{x:L,y:8+COMBO.length*(H+GAP)+18,class:"axis"});
-  cap.textContent="가로축: 청소년관람불가 비율 (0~100%)";svg.appendChild(cap);
+  cap.textContent="가로축: 청소년관람불가 비율 (0~100%) · 2026-09-07 정정 — 아래 설명 참조";svg.appendChild(cap);
 })();
 
 /* ── 6. adjustment ── */
@@ -466,27 +466,27 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
 
 /* ── 7. correlation ── */
 (function(){
-  const svg=document.getElementById("c-corr"),L=64,T=40,C=44,GAP=3;
+  const svg=document.getElementById("c-corr"),L=118,T=40,C=92,GAP=3;
   const mix=v=>{
     if(v>=0) return {fill:"var(--dvPos)",op:Math.max(.10,Math.abs(v))};
     return {fill:"var(--dvNeg)",op:Math.max(.10,Math.abs(v))};
   };
   for(let i=0;i<7;i++){
-    const th=el("text",{x:L+i*C+C/2,y:T-12,class:"axis","text-anchor":"middle"});th.textContent=i+1;svg.appendChild(th);
-    const tl=el("text",{x:L-12,y:T+i*C+C/2+4,class:"axis","text-anchor":"end"});tl.textContent=i+1;svg.appendChild(tl);
+    const th=el("text",{x:L+i*C+C/2,y:T-12,class:"axis","text-anchor":"middle"});th.textContent=ITEMS[i];svg.appendChild(th);
+    const tl=el("text",{x:L-12,y:T+i*C+C/2+4,class:"rowlab","text-anchor":"end"});tl.textContent=ITEMS[i];svg.appendChild(tl);
   }
   CORR.forEach((row,r)=>row.forEach((v,c)=>{
     const bg=el("rect",{x:L+c*C,y:T+r*C,width:C-GAP,height:C-GAP,rx:2,fill:"var(--dvMid)"});
     svg.appendChild(bg);
     const m=mix(v);
     const rect=el("rect",{x:L+c*C,y:T+r*C,width:C-GAP,height:C-GAP,rx:2,fill:m.fill,"fill-opacity":m.op});
-    bindTip(rect,`항목 ${r+1} ↔ 항목 ${c+1}  상관 ${v.toFixed(2)}`);
+    bindTip(rect,`${ITEMS[r]} ↔ ${ITEMS[c]}  상관 ${v.toFixed(2)}`);
     svg.appendChild(rect);
     const t=el("text",{x:L+c*C+(C-GAP)/2,y:T+r*C+C/2+3,class:"vlab","text-anchor":"middle",
       "font-size":"10.5"});
     t.textContent=v.toFixed(2);svg.appendChild(t);
   }));
   const note=el("text",{x:L,y:T+7*C+26,class:"axis"});
-  note.textContent="1·2·4·7 덩어리와 3·5·6 덩어리로 갈린다";svg.appendChild(note);
+  note.textContent="주제·선정성·대사·모방위험 덩어리와 폭력성·공포·약물 덩어리로 갈린다";svg.appendChild(note);
 })();
 </script>
