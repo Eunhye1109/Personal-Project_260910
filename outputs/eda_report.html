@@ -135,151 +135,184 @@ footer{padding:44px 0 0;color:var(--muted);font-size:13px}
 <div class="wrap">
 
 <header>
-  <div class="eyebrow">현황 EDA · 2026-09-02 (2026-09-07 갱신)</div>
+  <div class="eyebrow">현황 EDA · 2026-09-08 산출</div>
   <h1>비디오물 등급분류 현황</h1>
-  <p class="lede">영상물등급위원회 Open API로 수집한 비디오물 등급분류 결과를 정제하고, 관람등급과 내용정보의 분포·관계를 살펴본 1차 분석이다.</p>
+  <p class="lede">영상물등급위원회가 공개하는 비디오물 등급분류 결과를 전량 받아 정리한 1차 분석이다.
+  관람등급이 어떻게 분포하는지, 등급을 정하는 내용정보가 어떤 모양인지를 본다.</p>
 
   <dl class="facts">
-    <div class="fact"><dt>분석 대상</dt><dd>99,000<small> 건</small></dd></div>
-    <div class="fact"><dt>기간</dt><dd>2009<small>-01 ~ </small>2023<small>-03</small></dd></div>
-    <div class="fact"><dt>수집 진행</dt><dd>74<small>% / 134,197건</small></dd></div>
-    <div class="fact"><dt>내용정보 항목</dt><dd>7<small> 종 · 1~5 척도</small></dd></div>
+    <div class="fact"><dt>분석 대상</dt><dd>134,462<small> 건</small></dd></div>
+    <div class="fact"><dt>기간</dt><dd>2009<small>-01 ~ </small>2026<small>-09</small></dd></div>
+    <div class="fact"><dt>수집 진행</dt><dd>100<small>% 완료</small></dd></div>
+    <div class="fact"><dt>내용정보 항목</dt><dd>7<small> 종 · 1~5 단계</small></dd></div>
   </dl>
 
-  <p class="notice"><strong>수집이 아직 끝나지 않았다.</strong> API가 약 99,000건 지점부터 깊은 페이지 조회를 거부해(<span class="mono">resultCode 99</span>) 2023년 3월 이후 구간이 빠져 있다. 아래 결과 중 <strong>2023년 값은 1~3월분</strong>이며, 연도별 추이의 마지막 지점은 확정치가 아니다. 내용정보 분석에 필요한 구간은 모두 포함돼 있다.</p>
+  <p class="notice"><strong>수집이 끝났다.</strong> 한때 약 99,000건에서 조회가 막혔으나,
+  기간을 나눠 받는 방식으로 바꿔 134,462건 전량을 받았다. 이 페이지의 모든 수치는 전량 기준이다.</p>
 </header>
 
 <section>
   <div class="shead"><span class="snum">요약</span><h2>먼저 볼 것 세 가지</h2></div>
   <div class="finds">
     <div class="find">
+      <span class="tag">등급 결정 규칙</span>
+      <h3>관람등급은 내용정보의 가장 높은 단계와 같다</h3>
+      <p>내용정보 7개 항목 중 가장 높은 단계를 그대로 옮기면 관람등급이 된다.
+      134,462건 가운데 99.93%가 이 규칙을 따르고,
+      표기가 바뀐 2017년 5월 이후 94,516건은 어긋난 건이 하나도 없다.
+      즉 내용정보로 등급을 설명하는 것은 같은 값을 두 번 쓰는 셈이다.</p>
+    </div>
+    <div class="find">
       <span class="tag">구조 변화</span>
-      <h3>청소년관람불가가 82%에서 17%로</h3>
-      <p>2009년에는 등급분류된 비디오물의 82%가 청소년관람불가였다. 2023년에는 17%다. 같은 기간 전체관람가는 9%에서 48%로 올랐다. 심의 기준이 아니라 <strong>등급분류를 신청하는 대상 자체가 바뀐 것</strong>으로 보인다.</p>
+      <h3>청소년관람불가가 82%에서 25%로</h3>
+      <p>2009년에는 등급분류된 비디오물의 82%가 청소년관람불가였다.
+      2026년에는 25%다. 심의가 관대해졌다기보다
+      <strong>등급분류를 신청하는 대상 자체가 바뀐 것</strong>으로 보인다.</p>
     </div>
     <div class="find">
-      <span class="tag">표기 체계</span>
-      <h3>내용정보 표기가 2017년 5월에 바뀐다</h3>
-      <p>2017년 4월까지는 <span class="mono">1단계-낮음</span> 식 5단계 표기, 그 이후로는 <span class="mono">전체관람가</span> 식 등급 표기를 쓴다. 둘 다 5단계 순서형이라 하나로 합칠 수 있다. 경계 시점 분포로 대응을 검증했다.</p>
-    </div>
-    <div class="find">
-      <span class="tag">조합 효과</span>
-      <h3>등급은 내용정보의 최고값 그 자체였다</h3>
-      <p><strong>2026-09-07 갱신.</strong> 이 카드는 원래 &ldquo;내용요소는 겹칠수록 등급을 올린다&rdquo;였다.
-      4단계 분석에서 관람등급이 내용정보 7항목의 <strong>최고값과 항등 관계</strong>임이 확인됐다(98,999건 중 99.90% 일치,
-      2017-05 이후 100%). 따라서 아래 6절의 &lsquo;겹칠수록&rsquo; 해석은 성립하지 않는다.
-      자세한 것은 <span class="mono">stage4_report.html</span> 참조.</p>
+      <span class="tag">표본 구성</span>
+      <h3>성인물이 37%를 차지한다</h3>
+      <p>종별에서 성인물 비중이 크다. 성인물은 사실상 전건이 청소년관람불가라,
+      이를 통제하지 않으면 내용요소의 효과가 아니라 성인물의 비중 변화를 보게 된다.
+      아래 해석에서 계속 문제가 되는 지점이다.</p>
     </div>
   </div>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">1</span><h2>연도별 등급 구성</h2></div>
-  <p class="sdesc">연도마다 어떤 등급이 얼마나 나왔는지를 비율로 쌓았다. 막대 왼쪽 숫자는 그해 등급분류 건수다.</p>
+  <div class="shead"><span class="snum">1</span><h2>등급은 무엇으로 정해지는가</h2></div>
+  <p class="sdesc">내용정보 7개 항목 중 가장 높은 단계를 관람등급으로 옮겨 보았다.
+  1단계는 전체관람가, 2단계는 12세, 3단계는 15세, 4단계는 청소년관람불가, 5단계는 제한관람가에 해당한다.</p>
 
   <figure>
-    <div class="legend" id="lg-grade"></div>
-    <div class="scroll"><svg id="c-year" width="900" height="470" role="img" aria-label="연도별 관람등급 구성 비율"></svg></div>
-    <figcaption>2016년을 기점으로 구성이 크게 움직인다. 2021년 건수가 16,129건으로 튀는 것은 그해 등급분류 신청이 몰린 결과이며, 원인은 별도 확인이 필요하다.</figcaption>
-    <details>
-      <summary>표로 보기</summary>
-      <div class="scroll"><table id="t-year"></table></div>
-    </details>
+    <div class="scroll"><svg id="c-rule" width="900" height="300" role="img" aria-label="내용정보 최고값과 관람등급의 대응"></svg></div>
+    <figcaption>대각선만 채워져 있다. 두 값이 사실상 같은 것이라는 뜻이다.
+    전체 일치율 99.93%, 단계표기 시기(39,946건) 99.755%,
+    등급표기 시기(94,516건) 100.000%.
+    어긋난 건은 모두 2017년 5월 이전이고 대부분 최고값이 5단계인데 제한관람가가 아니라
+    청소년관람불가로 결정된 경우다.</figcaption>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">2</span><h2>관람등급과 종별 분포</h2></div>
-  <p class="sdesc">전체 기간을 합쳤을 때의 분포다. 종별에서 성인물이 43%를 차지하는 점이 이후 해석에 계속 영향을 준다.</p>
+  <div class="shead"><span class="snum">2</span><h2>연도별 등급 구성</h2></div>
+  <p class="sdesc">해마다 어떤 등급이 얼마나 나왔는지를 비율로 쌓았다. 막대 왼쪽 숫자는 그해 등급분류 건수다.</p>
+
+  <figure>
+    <div class="legend" id="lg-grade"></div>
+    <div class="scroll"><svg id="c-year" width="900" height="618" role="img" aria-label="연도별 관람등급 구성 비율"></svg></div>
+    <figcaption>2016년을 기점으로 구성이 크게 움직인다. 건수가 특정 해에 튀는 것은
+    그해 신청이 몰린 결과이며, 비율 변화와 건수 변화를 따로 보아야 한다.</figcaption>
+    <details><summary>표로 보기</summary><div class="scroll"><table id="t-year"></table></div></details>
+  </figure>
+</section>
+
+<section>
+  <div class="shead"><span class="snum">3</span><h2>관람등급과 종별 분포</h2></div>
+  <p class="sdesc">전체 기간을 합쳤을 때의 분포다. 종별에서 성인물이 차지하는 비중이
+  이후 해석에 계속 영향을 준다.</p>
 
   <figure>
     <div class="scroll"><svg id="c-grade" width="900" height="200" role="img" aria-label="관람등급 분포"></svg></div>
     <div class="scroll"><svg id="c-kind" width="900" height="235" role="img" aria-label="종별 분포"></svg></div>
-    <figcaption>비디오물은 성인물 비중이 높다. 게임물과 비교할 때 이 구성 차이가 매체 차이로 오해되지 않도록 종별을 통제해야 한다.</figcaption>
+    <figcaption>비디오물은 성인물 비중이 높다. 게임물과 비교할 때 이 구성 차이가
+    매체 차이로 오해되지 않도록 종별을 맞춘 뒤 비교해야 한다.</figcaption>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">3</span><h2>두 가지 표기 체계</h2></div>
-  <p class="sdesc">내용정보 7항목의 평균을 표기 체계별로 나눠 봤다. 두 체계가 같은 것을 재고 있다면 항목별 순서와 상대적 크기가 유지되어야 한다.</p>
+  <div class="shead"><span class="snum">4</span><h2>두 가지 표기 체계</h2></div>
+  <p class="sdesc">내용정보 표기는 2017년 5월에 한 번 바뀐다. 그 전에는 <span class="mono">1단계-낮음</span>처럼
+  단계로, 그 뒤에는 <span class="mono">전체관람가</span>처럼 등급 이름으로 쓴다.
+  둘 다 5단계라 하나로 합칠 수 있는지 확인한 것이다.</p>
 
   <figure>
     <div class="legend">
-      <span><i class="sw" style="background:var(--catA)"></i>단계표기 · 2009-01 ~ 2017-04</span>
-      <span><i class="sw" style="background:var(--catB)"></i>등급표기 · 2017-05 ~</span>
+      <span><i class="sw" style="background:var(--catA)"></i>단계표기 · 2017년 4월까지</span>
+      <span><i class="sw" style="background:var(--catB)"></i>등급표기 · 2017년 5월부터</span>
     </div>
     <div class="scroll"><svg id="c-nota" width="900" height="300" role="img" aria-label="표기 체계별 내용정보 항목 평균"></svg></div>
-    <figcaption>등급표기 쪽이 전반적으로 낮은 것은 체계 차이가 아니라 그 시기에 전체관람가 비중이 커졌기 때문이다. 항목 간 상대적 순서(주제·선정성·대사·모방위험이 높고 폭력성·공포·약물이 낮음)는 두 체계에서 그대로 유지된다.</figcaption>
-    <details>
-      <summary>표로 보기</summary>
-      <div class="scroll"><table id="t-nota"></table></div>
-    </details>
+    <figcaption>등급표기 쪽이 전반적으로 낮은 것은 체계가 달라서가 아니라
+    그 시기에 전체관람가 비중이 커졌기 때문이다. 항목 사이의 상대적 순서는 두 체계에서 그대로 유지된다.</figcaption>
+    <details><summary>표로 보기</summary><div class="scroll"><table id="t-nota"></table></div></details>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">4</span><h2>등급별 내용정보 프로파일</h2></div>
-  <p class="sdesc">관람등급마다 7개 내용정보 항목이 평균 몇 단계인지를 격자로 표시했다. 색이 진할수록 높은 값이다.</p>
+  <div class="shead"><span class="snum">5</span><h2>등급별 내용정보 프로파일</h2></div>
+  <p class="sdesc">관람등급마다 7개 항목이 평균 몇 단계인지를 격자로 표시했다. 색이 진할수록 높은 값이다.</p>
 
   <figure>
     <div class="scroll"><svg id="c-prof" width="900" height="290" role="img" aria-label="관람등급별 내용정보 항목 평균"></svg></div>
-    <figcaption>전체관람가는 7개 항목이 모두 정확히 1.00이다 — 하나라도 2단계 이상이면 전체관람가가 나오지 않는다는 뜻이다. 청소년관람불가에서는 주제·선정성·대사·모방위험만 높고 폭력성·공포·약물은 낮게 유지되는데, 성인물 비중이 높은 표본의 성격이 그대로 드러난 것이다. (항목명은 2026-09-07 확정)</figcaption>
+    <figcaption>전체관람가는 7개 항목이 모두 정확히 1.00이다. 하나라도 2단계가 되면
+    전체관람가가 나오지 않는다는 뜻이고, 이는 1절의 최고값 규칙과 같은 이야기다.
+    청소년관람불가에서 주제·선정성·대사·모방위험만 높은 것은 성인물 비중이 높은 표본의 성격이다.</figcaption>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">5</span><h2>내용요소가 겹치면</h2></div>
-  <p class="sdesc">3단계 이상인 항목이 몇 개인지에 따라 청소년관람불가 비율이 어떻게 달라지는지 봤다. 막대 옆 숫자는 해당 구간의 건수다.</p>
+  <div class="shead"><span class="snum">6</span><h2>무엇이 등급을 끌어올렸나</h2></div>
+  <p class="sdesc">등급이 최고값이라면, 남는 질문은 그 최고값을 무엇이 차지하느냐다.
+  응답에 들어 있는 결정사유 항목이 이것을 이름으로 알려준다.
+  기록된 건은 39,618건이고 구간은 2020년부터 2026년까지다.</p>
 
   <figure>
-    <div class="scroll"><svg id="c-combo" width="900" height="330" role="img" aria-label="3단계 이상 항목 수별 청소년관람불가 비율"></svg></div>
-    <figcaption><strong>2026-09-07 정정.</strong> 5개에서 꺾이는 것은 특정 조합이 작동해서가 아니라 <strong>성인물 편중이 만든 착시</strong>다. 성인물은 내용정보와 무관하게 사실상 전건 청소년관람불가이고, 4개 구간에 성인물이 89% 몰려 있다. 성인물을 빼면 꺾임이 사라지고 단조 증가한다. 더 근본적으로는 등급이 내용정보의 최고값 그 자체이므로, 3단계 이상을 &lsquo;있음&rsquo;으로 뭉갠 이 그림은 3·4·5단계의 차이를 지운 상태다. 아래 값은 기록으로 남기되 해석에는 쓰지 않는다.</figcaption>
+    <div class="scroll"><svg id="c-heat" width="900" height="260" role="img" aria-label="종별로 등급을 결정한 내용정보 항목"></svg></div>
+    <figcaption>종별에 따라 등급을 끌어올린 항목이 뚜렷하게 갈린다.
+    이것은 최고값 규칙에서 자동으로 따라 나오는 결과가 아니라 콘텐츠 성격의 차이다.
+    다만 결정사유는 최근 구간에만 기록돼 있어 전 기간으로 넓혀 읽을 수는 없다.</figcaption>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">6</span><h2>신청등급과 결정등급</h2></div>
-  <p class="sdesc">신청자가 희망한 등급과 위원회가 결정한 등급이 다른 사례다. 전체의 11%에서 조정이 일어났다.</p>
+  <div class="shead"><span class="snum">7</span><h2>신청등급과 결정등급</h2></div>
+  <p class="sdesc">신청사가 희망한 등급과 위원회가 결정한 등급이 다른 사례다.
+  내용정보와 결정등급은 사실상 같은 값이라 서로를 설명하지 못하지만, 신청등급은 다르다.
+  이 데이터에서 판단이 개입하는 영역은 여기뿐이다.</p>
 
   <figure>
     <div class="scroll"><svg id="c-adj" width="900" height="120" role="img" aria-label="신청등급 대비 결정등급 조정 비율"></svg></div>
     <div class="scroll"><svg id="c-adjup" width="900" height="200" role="img" aria-label="상향 조정된 건의 신청등급 분포"></svg></div>
-    <figcaption>상향 조정이 하향의 두 배가 넘는다. 상향된 7,474건 중 4,210건은 전체관람가로 신청했던 건이다. 이 조정 사례는 매체 간 판정 차이를 볼 때 직접 쓸 수 있는 재료다.</figcaption>
+    <figcaption>상향 조정이 하향보다 많다. 상향된 건 가운데 상당수가 낮은 등급으로 신청했던 건이다.
+    이 조정 사례는 매체 간 판정 차이를 볼 때 그대로 쓸 수 있는 재료다.</figcaption>
   </figure>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">7</span><h2>항목끼리 얼마나 같이 움직이나</h2></div>
-  <p class="sdesc">내용정보 7항목 사이의 상관계수다. 파란색은 음의 상관, 주황색은 양의 상관이다.</p>
+  <div class="shead"><span class="snum">8</span><h2>항목끼리 얼마나 같이 움직이나</h2></div>
+  <p class="sdesc">내용정보 7개 항목 사이의 상관계수다. 파란색은 음의 상관, 주황색은 양의 상관이다.</p>
 
   <figure>
     <div class="scroll"><svg id="c-corr" width="900" height="700" role="img" aria-label="내용정보 항목 간 상관계수 행렬"></svg></div>
-    <figcaption><strong>항목이 두 덩어리로 갈린다.</strong> <strong>주제·선정성·대사·모방위험</strong>이 서로 0.67~0.88로 강하게 붙어 다니고, <strong>폭력성·공포·약물</strong>이 0.43~0.71로 또 다른 덩어리를 이룬다. 두 덩어리 사이의 상관은 0에 가깝거나 음수다. 2026-09-07에 항목명이 확정되면서 이 구조가 읽힌다 — 앞 덩어리는 성인물 축, 뒤 덩어리는 극영화·애니메이션 축이다. 실제로 결정사유로 지목되는 항목이 성인물은 선정성(99.9%), 극영화는 폭력성(54.1%)으로 갈린다.</figcaption>
+    <figcaption><strong>항목이 두 덩어리로 갈린다.</strong>
+    주제·선정성·대사·모방위험이 서로 강하게 붙어 다니고, 폭력성·공포·약물이 또 다른 덩어리를 이룬다.
+    두 덩어리 사이의 상관은 0에 가깝거나 음수다. 앞 덩어리는 성인물, 뒤 덩어리는 극영화·애니메이션 쪽에서
+    주로 나타난다.</figcaption>
   </figure>
 </section>
 
 <section>
   <div class="shead"><span class="snum">다음</span><h2>남은 일</h2></div>
   <ul class="items">
-    <li><span class="pill done">해결</span><div><strong>내용정보 항목명 확정 (2026-09-07).</strong> API가 <span class="mono">rtStdName1</span>~<span class="mono">7</span> 번호로만 주고 이름표를 주지 않았다.
-      같은 응답의 <span class="mono">rtCoreHarmRsnNm</span>(결정사유)이 등급을 결정한 항목을 이름으로 담고 있어 이것으로 대응을 밝혔다.
-      <strong>1 주제 · 2 선정성 · 3 폭력성 · 4 대사 · 5 공포 · 6 약물 · 7 모방위험.</strong>
-      공공데이터포털 메타데이터의 순서는 4·5·6번이 실제와 다르다. 재현은 <span class="mono">verify_stdname.py</span>.</div></li>
-    <li><span class="pill open">진행</span><div><strong>남은 35,197건 수집.</strong> 깊은 페이지 조회가 막혀 있어 날짜 조건으로 나눠 받는 방식으로 바꿔야 한다. 검색 조건 파라미터를 확인하는 중이다.</div></li>
-    <li><span class="pill hold">보류</span><div><strong>게임물관리위원회 데이터.</strong> 해당 API는 포털을 거치지 않고 게임위 서버로 직접 붙는 구조인데 사무실 IP가 차단돼 있다.
-      수집·검증 스크립트는 작성해 뒀고(<span class="mono">probe_grac.py</span> · <span class="mono">collect_grac.py</span>) 집 회선에서 실행하면 된다.
-      공공데이터포털에 활용신청 절차가 없어 인증키가 아니라 호출주소가 관건이다.</div></li>
-    <li><span class="pill done">정정</span><div><strong><span class="mono">rtCoreHarmRsnNm</span>은 버릴 필드가 아니었다 (2026-09-07).</strong>
-      이 문서는 이 필드를 &ldquo;81% 결측이라 분석에서 제외&rdquo;로 적었으나, 채워진 19%(18,896건)가 항목명 확정과
-      &lsquo;어떤 항목이 등급을 끌어올렸는가&rsquo; 분석의 결정적 근거가 됐다. 다만 기록 구간이 2020~2023뿐이라 전 기간으로 일반화할 수는 없다.
-      Y/N 플래그 6종이 실제 사용되지 않는다는 것은 그대로 유효하다.</div></li>
-    <li><span class="pill open">최우선</span><div><strong>등급 결정 규칙의 매체 간 비교.</strong> 영상물은 등급이 내용정보의 최고값이다.
-      게임물도 같은 규칙인지가 다음 질문이며, 다르면 그 자체가 이 프로젝트의 결과가 된다. <span class="mono">stage4_report.html</span> 참조.</div></li>
+    <li><span class="pill done">해결</span><div><strong>내용정보 항목명 확정.</strong>
+      응답이 항목을 번호로만 주고 이름을 주지 않았다. 같은 응답의 결정사유 항목이
+      등급을 결정한 항목을 이름으로 담고 있어 그것으로 대응을 밝혔다.
+      <strong>1 주제 · 2 선정성 · 3 폭력성 · 4 대사 · 5 공포 · 6 약물 · 7 모방위험</strong>이다.
+      공공데이터포털 설명의 순서는 4·5·6번이 실제와 다르다.</div></li>
+    <li><span class="pill done">해결</span><div><strong>전량 수집.</strong>
+      약 99,000건에서 조회가 막혔으나 기간을 나눠 받는 방식으로 바꿔 134,462건을 모두 받았다.</div></li>
+    <li><span class="pill open">진행</span><div><strong>게임물과의 비교.</strong>
+      게임물 등급분류 결과도 전량 받았다. 다만 게임물은 항목에 단계가 없고 해당 항목의 이름만
+      나열되는 방식이라 같은 척도로 견줄 수 없다. 별도 문서에서 다룬다.</div></li>
+    <li><span class="pill hold">유의</span><div><strong>이 표본으로 비디오물 전체를 말할 수 없다.</strong>
+      성인물이 37%를 차지하고, 성인물은 내용정보와 무관하게 사실상 전건이
+      청소년관람불가다. 종별을 맞추지 않고 낸 결론은 뒤집힐 수 있다.</div></li>
   </ul>
 </section>
 
 <footer>
-  영상물등급위원회 비디오물 등급분류정보 조회 서비스(공공데이터포털) 수집분 99,000건 기준 · 2026-09-02 산출 · 2026-09-07 갱신(항목명 확정, 조합 해석 정정)
+  영상물등급위원회 비디오물 등급분류정보 조회 서비스(공공데이터포털) 전량 수집분 134,462건 기준 ·
+  2026-09-08 산출 · <span class="mono">src/make_eda_report.py</span> 로 다시 만들 수 있다
 </footer>
 </div>
 
@@ -292,33 +325,21 @@ const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim
 const fmt=n=>n.toLocaleString("ko-KR");
 
 /* ── data ── */
-const GRADES=["전체관람가","12세이상관람가","15세이상관람가","청소년관람불가","제한관람가"];
-/* 260907 확정 — rtCoreHarmRsnNm(결정사유)으로 번호-이름 대응을 밝혔다. verify_stdname.py 참조 */
-const ITEMS=["주제","선정성","폭력성","대사","공포","약물","모방위험"];
+const GRADES=["전체관람가", "12세이상관람가", "15세이상관람가", "청소년관람불가", "제한관람가"];
 const RAMP=["--s1","--s2","--s3","--s4","--s5"];
-const YEAR=[
- [2009,2564,[8.9,3.7,5.0,81.9,0.4]],[2010,4602,[7.1,4.0,5.0,79.7,4.2]],
- [2011,4773,[7.1,4.1,5.4,82.6,0.9]],[2012,4475,[10.0,2.8,3.4,83.7,0.1]],
- [2013,5031,[10.8,2.7,5.0,81.4,0.0]],[2014,4683,[8.0,4.0,4.7,83.2,0.1]],
- [2015,4324,[9.3,6.6,4.7,79.3,0.0]],[2016,6576,[14.2,9.8,14.5,61.5,0.0]],
- [2017,8186,[17.6,10.4,17.7,54.3,0.0]],[2018,6809,[16.8,9.5,18.7,55.0,0.0]],
- [2019,6608,[25.5,8.2,20.1,46.2,0.0]],[2020,7931,[37.2,9.6,16.4,36.8,0.0]],
- [2021,16129,[49.2,14.9,17.7,18.2,0.0]],[2022,13544,[41.4,15.2,20.3,23.0,0.1]],
- [2023,2765,[47.7,16.0,18.8,17.2,0.4]]];
-const GRADE_N=[25669,9564,13868,49603,296];
-const KIND=[["성인물",42892],["기타",29293],["극영화",13527],["뮤직비디오",7340],["애니메이션",3982],["부가영상",1963]];
-const NOTA=[[3.44,2.36],[3.34,2.05],[1.33,1.40],[3.04,2.22],[1.26,1.25],[1.21,1.37],[2.80,1.82]];
-const PROF=[[1.00,1.00,1.00,1.00,1.00,1.00,1.00],[1.79,1.22,1.34,1.58,1.23,1.30,1.29],
-            [2.77,1.84,2.13,2.37,1.71,1.92,1.97],[3.92,3.84,1.35,3.59,1.26,1.29,3.09],
-            [4.54,4.57,1.95,3.93,1.37,1.24,3.60]];
-const COMBO=[[0,35232,0.0],[1,2124,5.4],[2,5927,37.9],[3,17002,74.7],[4,30937,93.4],
-             [5,3948,71.5],[6,2094,77.5],[7,1736,86.4]];
-const ADJ=[["동일",88108,89.0],["상향 조정",7474,7.5],["하향 조정",3412,3.4]];
-const ADJUP=[["전체관람가",4210],["12세이상관람가",1633],["15세이상관람가",1338],["청소년관람불가",293]];
-const CORR=[[1.00,0.88,0.15,0.86,0.14,0.12,0.71],[0.88,1.00,-0.05,0.81,-0.03,-0.01,0.68],
-            [0.15,-0.05,1.00,0.09,0.71,0.55,0.13],[0.86,0.81,0.09,1.00,0.03,0.12,0.67],
-            [0.14,-0.03,0.71,0.03,1.00,0.43,0.15],[0.12,-0.01,0.55,0.12,0.43,1.00,0.13],
-            [0.71,0.68,0.13,0.67,0.15,0.13,1.00]];
+const ITEMS=["주제", "선정성", "폭력성", "대사", "공포", "약물", "모방위험"];
+const YEAR=[[2009, 2564, [8.9, 3.7, 5.0, 81.9, 0.4]], [2010, 4602, [7.1, 4.0, 5.0, 79.7, 4.2]], [2011, 4773, [7.1, 4.1, 5.4, 82.6, 0.9]], [2012, 4475, [10.0, 2.8, 3.4, 83.7, 0.1]], [2013, 5031, [10.8, 2.7, 5.0, 81.4, 0.0]], [2014, 4683, [8.0, 4.0, 4.7, 83.2, 0.1]], [2015, 4324, [9.3, 6.6, 4.7, 79.3, 0.0]], [2016, 6576, [14.2, 9.8, 14.5, 61.5, 0.0]], [2017, 8186, [17.6, 10.4, 17.7, 54.3, 0.0]], [2018, 6809, [16.8, 9.5, 18.7, 55.0, 0.0]], [2019, 6608, [25.5, 8.2, 20.1, 46.2, 0.0]], [2020, 7931, [37.2, 9.6, 16.4, 36.8, 0.0]], [2021, 16129, [49.2, 14.9, 17.7, 18.2, 0.0]], [2022, 13543, [41.4, 15.2, 20.3, 23.0, 0.1]], [2023, 10366, [51.6, 12.8, 14.1, 21.2, 0.3]], [2024, 8748, [50.4, 10.3, 12.1, 27.0, 0.1]], [2025, 10749, [34.7, 8.9, 31.2, 25.0, 0.1]], [2026, 8365, [30.7, 7.9, 36.4, 25.0, 0.0]]];
+const GRADE_N=[40409, 12962, 22275, 58472, 344];
+const KIND=[["성인물", 49741], ["기타", 33391], ["뮤직비디오", 20118], ["극영화", 17089], ["애니메이션", 5460], ["숏폼", 4648]];
+const NOTA=[[3.44, 2.25], [3.34, 2.02], [1.33, 1.43], [3.04, 2.12], [1.26, 1.22], [1.21, 1.39], [2.8, 1.61]];
+const PROF=[[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [1.71, 1.22, 1.35, 1.52, 1.21, 1.32, 1.25], [2.58, 1.9, 2.28, 2.22, 1.62, 2.03, 1.87], [3.91, 3.83, 1.36, 3.6, 1.25, 1.31, 2.82], [4.51, 4.62, 1.9, 3.95, 1.33, 1.22, 3.31]];
+const RULE=[[1, 40408, 40408, 0, 0, 0, 0], [2, 12962, 0, 12962, 0, 0, 0], [3, 22273, 0, 0, 22273, 0, 0], [4, 58380, 1, 0, 2, 58377, 0], [5, 439, 0, 0, 0, 95, 344]];
+const ADJ=[["신청대로", 117932, 87.7], ["상향 조정", 11617, 8.6], ["하향 조정", 4906, 3.6]];
+const ADJUP=[["전체관람가", 6279], ["12세이상관람가", 3021], ["15세이상관람가", 1976], ["청소년관람불가", 341]];
+const CORR=[[1.0, 0.88, 0.13, 0.87, 0.15, 0.11, 0.65], [0.88, 1.0, -0.03, 0.83, -0.01, 0.02, 0.61], [0.13, -0.03, 1.0, 0.07, 0.66, 0.57, 0.16], [0.87, 0.83, 0.07, 1.0, 0.04, 0.1, 0.6], [0.15, -0.01, 0.66, 0.04, 1.0, 0.39, 0.19], [0.11, 0.02, 0.57, 0.1, 0.39, 1.0, 0.15], [0.65, 0.61, 0.16, 0.6, 0.19, 0.15, 1.0]];
+const REASONS=["주제", "대사", "선정성", "폭력성", "약물", "모방위험", "공포"];
+const HEAT=[["성인물", 99.4, 97.9, 99.9, 0.1, 0.1, 0.2, 0.0], ["기타", 66.8, 45.9, 22.3, 26.4, 27.8, 16.9, 13.8], ["극영화", 47.4, 29.9, 31.0, 53.8, 36.0, 16.4, 19.7], ["숏폼", 27.3, 22.5, 47.6, 82.0, 51.0, 17.5, 2.7], ["뮤직비디오", 31.2, 38.0, 14.1, 15.6, 40.5, 14.1, 10.8]];
+const TOTAL=134462;
 
 /* ── tooltip ── */
 const tip=document.getElementById("tip");
@@ -376,8 +397,8 @@ function hbars(id,rows,colorFn,total,labelW){
     v.textContent=`${fmt(n)}  ${(n/total*100).toFixed(1)}%`;svg.appendChild(v);
   });
 }
-hbars("c-grade",GRADES.map((g,i)=>[g,GRADE_N[i]]),i=>`var(${RAMP[i]})`,99000,120);
-hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
+hbars("c-grade",GRADES.map((g,i)=>[g,GRADE_N[i]]),i=>`var(${RAMP[i]})`,TOTAL,120);
+hbars("c-kind",KIND,()=> "var(--plain)",TOTAL,100);
 
 /* ── 3. notation ── */
 (function(){
@@ -428,24 +449,6 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
   });
 })();
 
-/* ── 5. combo ── */
-(function(){
-  const svg=document.getElementById("c-combo"),L=150,R=120,W=900-L-R,H=30,GAP=7;
-  COMBO.forEach(([k,n,pct],i)=>{
-    const y=8+i*(H+GAP);
-    const t=el("text",{x:0,y:y+20,class:"rowlab"});t.textContent=`${k}개 항목`;svg.appendChild(t);
-    const w=Math.max(W*pct/100,1.5);
-    const step=Math.min(4,Math.floor(pct/25));
-    const rect=el("rect",{x:L,y:y,width:w,height:H,rx:2,fill:`var(${RAMP[step]})`});
-    bindTip(rect,`3단계 이상 ${k}개  청소년관람불가 ${pct}% · ${fmt(n)}건`);
-    svg.appendChild(rect);
-    const v=el("text",{x:L+w+9,y:y+20,class:"vlab"});
-    v.textContent=`${pct}%   ${fmt(n)}건`;svg.appendChild(v);
-  });
-  const cap=el("text",{x:L,y:8+COMBO.length*(H+GAP)+18,class:"axis"});
-  cap.textContent="가로축: 청소년관람불가 비율 (0~100%) · 2026-09-07 정정 — 아래 설명 참조";svg.appendChild(cap);
-})();
-
 /* ── 6. adjustment ── */
 (function(){
   const svg=document.getElementById("c-adj"),L=0,W=900,H=34;
@@ -461,7 +464,7 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
     const c=el("text",{x:x,y:82,class:"axis"});c.textContent=fmt(n)+"건";svg.appendChild(c);
     x+=w;
   });
-  hbars("c-adjup",ADJUP,()=> "var(--dvPos)",7474,130);
+  hbars("c-adjup",ADJUP,()=> "var(--dvPos)",ADJUP.reduce((a,b)=>a+b[1],0),130);
 })();
 
 /* ── 7. correlation ── */
@@ -489,4 +492,59 @@ hbars("c-kind",KIND,()=> "var(--plain)",99000,100);
   const note=el("text",{x:L,y:T+7*C+26,class:"axis"});
   note.textContent="주제·선정성·대사·모방위험 덩어리와 폭력성·공포·약물 덩어리로 갈린다";svg.appendChild(note);
 })();
+
+/* ── 8. 최고값 x 등급 (항등식) ── */
+(function(){
+  const svg=document.getElementById("c-rule"); if(!svg) return;
+  const L=90,T=44,CW=150,CH=40,GAP=3;
+  GRADES.forEach((g,c)=>{
+    const t=el("text",{x:L+c*CW+CW/2,y:T-14,class:"axis","text-anchor":"middle"});
+    t.textContent=g.replace("이상관람가","세").replace("관람가","");svg.appendChild(t);
+  });
+  RULE.forEach(([lv,tot,...cells],r)=>{
+    const t=el("text",{x:0,y:T+r*CH+CH/2+4,class:"rowlab"});t.textContent=lv+"단계";svg.appendChild(t);
+    cells.forEach((n,c)=>{
+      const on=n>0, w=CW-GAP;
+      const rect=el("rect",{x:L+c*CW,y:T+r*CH,width:w,height:CH-GAP,rx:2,
+        fill:on?"var(--s4)":"var(--sunk)"});
+      bindTip(rect,`최고값 ${lv}단계 → ${GRADES[c]}  ${fmt(n)}건`);
+      svg.appendChild(rect);
+      if(n>0){
+        const tx=el("text",{x:L+c*CW+w/2,y:T+r*CH+CH/2+4,class:"vlab","text-anchor":"middle",
+          fill:"var(--paper)"});
+        tx.textContent=fmt(n);svg.appendChild(tx);
+      }
+    });
+  });
+  const note=el("text",{x:L,y:T+RULE.length*CH+24,class:"axis"});
+  note.textContent="대각선만 채워진다 — 관람등급은 내용정보의 최고값과 같다";
+  svg.appendChild(note);
+})();
+
+/* ── 9. 종별로 등급을 결정한 항목 ── */
+(function(){
+  const svg=document.getElementById("c-heat"); if(!svg) return;
+  const L=110,T=40,CW=Math.min(105,(900-L)/REASONS.length),CH=36,GAP=3;
+  REASONS.forEach((n,c)=>{
+    const t=el("text",{x:L+c*CW+CW/2,y:T-12,class:"axis","text-anchor":"middle"});
+    t.textContent=n;svg.appendChild(t);
+  });
+  HEAT.forEach(([kind,...vals],r)=>{
+    const t=el("text",{x:0,y:T+r*CH+CH/2+4,class:"rowlab"});t.textContent=kind;svg.appendChild(t);
+    vals.forEach((v,c)=>{
+      const step=Math.min(4,Math.floor(v/20));
+      const rect=el("rect",{x:L+c*CW,y:T+r*CH,width:CW-GAP,height:CH-GAP,rx:2,
+        fill:`var(${RAMP[step]})`});
+      bindTip(rect,`${kind} · ${REASONS[c]}  ${v}%`);
+      svg.appendChild(rect);
+      const tx=el("text",{x:L+c*CW+(CW-GAP)/2,y:T+r*CH+CH/2+4,class:"vlab","text-anchor":"middle",
+        fill:step>=3?"var(--paper)":"var(--ink)"});
+      tx.textContent=v.toFixed(0)+"%";svg.appendChild(tx);
+    });
+  });
+  const note=el("text",{x:L,y:T+HEAT.length*CH+24,class:"axis"});
+  note.textContent="각 종별에서 그 항목이 결정사유로 지목된 비율";
+  svg.appendChild(note);
+})();
+
 </script>

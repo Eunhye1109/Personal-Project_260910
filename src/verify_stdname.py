@@ -19,7 +19,7 @@
 
 실행
     python src/verify_stdname.py
-    python src/verify_stdname.py --data data/processed/kmrb_video_clean_260902.parquet
+    python src/verify_stdname.py --data data/processed/kmrb_video_clean_260908.parquet
 """
 from __future__ import annotations
 
@@ -30,7 +30,13 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA = ROOT / "data" / "processed" / "kmrb_video_clean_260902.parquet"
+def _latest() -> Path:
+    """가장 최근 정제본. 날짜를 박아두면 재수집 후 옛 파일을 보게 된다."""
+    files = sorted((ROOT / "data" / "processed").glob("kmrb_video_clean_*.parquet"))
+    return files[-1] if files else ROOT / "data" / "processed" / "없음.parquet"
+
+
+DEFAULT_DATA = _latest()
 OUT_DIR = ROOT / "outputs"
 
 LV_COLS = [f"rtStdName{i}_lv" for i in range(1, 8)]

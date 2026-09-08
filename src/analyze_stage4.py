@@ -49,7 +49,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sync_nas  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "data" / "processed" / "kmrb_video_clean_260902.parquet"
 OUT = ROOT / "outputs"
 
 NAMES = {1: "주제", 2: "선정성", 3: "폭력성", 4: "대사", 5: "공포", 6: "약물", 7: "모방위험"}
@@ -80,10 +79,18 @@ def pct(x: float, d: int = 1) -> str:
     return f"{x * 100:.{d}f}%"
 
 
+def latest_clean() -> Path:
+    """가장 최근 정제본을 쓴다. 날짜를 코드에 박아두면 재수집 후 옛 파일을 보게 된다."""
+    files = sorted((ROOT / "data" / "processed").glob("kmrb_video_clean_*.parquet"))
+    if not files:
+        sys.exit("[중단] 정제본이 없습니다. 먼저 src/clean_kmrb.py 를 실행하세요.")
+    return files[-1]
+
+
 def load() -> pd.DataFrame:
-    if not DATA.exists():
-        sys.exit(f"[중단] 정제본이 없습니다: {DATA}")
-    df = pd.read_parquet(DATA).dropna(subset=LV + ["grade_age"]).copy()
+    src = latest_clean()
+    print(f"정제본: {src.name}")
+    df = pd.read_parquet(src).dropna(subset=LV + ["grade_age"]).copy()
     df["cmax"] = df[LV].max(axis=1).astype(int)
     df["rule_grade"] = df["cmax"].map(LEVEL_TO_AGE)
     df["follows_rule"] = df["rule_grade"] == df["grade_age"]
