@@ -6,13 +6,15 @@
 다만 물어보는 것이 조금 다르다. 영등위는 등급이 내용정보의 최고값이라는 항등식이
 확인됐지만(4단계 분석), 게임위는 내용정보에 수준이 없어 같은 질문을 할 수 없다.
 
-그래서 이렇게 묻는다.
+답부터 말하면, 게임에서 청소년이용불가를 만드는 것은 폭력이나 선정성이 아니라 사행성이다.
+그 근거를 §0 에 먼저 놓고 나머지 절에서 뒷받침한다.
 
+    §0  결론 — 무엇이 청소년이용불가를 만드나
     §1  무엇이 얼마나 있나            등급·플랫폼·장르·기관·연도
-    §2  내용정보는 어떻게 붙어 있나    항목별 보유율, 빈 값 47.6%의 정체
+    §2  내용정보는 어떻게 붙어 있나    항목별 보유율, 빈 값의 정체
     §3  무엇이 등급을 가르는가        항목별 조건부 청소년이용불가율
     §4  두 기관이 같은 규칙을 쓰는가   게임물관리위원회 vs 게임콘텐츠등급분류위원회
-    §5  등급취소 1,040건은 무엇인가
+    §5  등급취소는 무엇인가
 
 실행
     python src/eda_grac.py
@@ -69,6 +71,57 @@ def load() -> pd.DataFrame:
     df = pd.read_parquet(files[-1])
     say(f"정제본: {files[-1].name}  {len(df):,}행 × {len(df.columns)}열")
     return df
+
+
+# ───────────────────────────────── §0 결론
+def s0(df, res):
+    head("0. 결론 — 게임 규제의 실체는 도박성이다")
+    say("게임을 규제한다고 하면 보통 폭력성이나 선정성을 떠올린다. 데이터는 다르다.")
+
+    d = df[~df["is_canceled"]].dropna(subset=["is_youth_restricted"]).copy()
+    d["is_youth_restricted"] = d["is_youth_restricted"].astype(bool)
+    yr = d[d["is_youth_restricted"]]
+
+    say("")
+    say(f"  [청소년이용불가를 받은 게임 {len(yr):,}건이 무엇을 갖고 있었나]")
+    say(f"    {'항목':<8} {'건수':>9} {'비중':>8}")
+    compose = [[n, int(yr[f"내용_{n}"].sum()), float(yr[f"내용_{n}"].mean())] for n in DESCRIPTORS]
+    for name, c, r in sorted(compose, key=lambda x: -x[1]):
+        say(f"    {name:<8} {c:>9,} {pct(r):>8}  " + "█" * int(r * 40))
+    say("")
+    say("    ※ 한 게임이 항목을 여러 개 가질 수 있어 합은 100%를 넘는다.")
+
+    has, no = d[d["내용_사행성"] == 1], d[d["내용_사행성"] == 0]
+    say("")
+    say("  [사행성이 있고 없고로 갈린다]")
+    say(f"    사행성 있음  {len(has):>7,}건 중 청소년이용불가 {pct(has['is_youth_restricted'].mean())}")
+    say(f"    사행성 없음  {len(no):>7,}건 중 청소년이용불가 {pct(no['is_youth_restricted'].mean())}")
+
+    say("")
+    say("  [플랫폼별 — 사행성 비율과 청소년이용불가 비율이 붙어 다닌다]")
+    say(f"    {'플랫폼':<16} {'건수':>8} {'사행성':>9} {'청불':>9}")
+    plat = {}
+    for name, sub in d.groupby("platform"):
+        if len(sub) < 300:
+            continue
+        g, y = float(sub["내용_사행성"].mean()), float(sub["is_youth_restricted"].mean())
+        plat[str(name)] = [len(sub), round(g, 4), round(y, 4)]
+        say(f"    {str(name):<16} {len(sub):>8,} {pct(g):>9} {pct(y):>9}")
+
+    say("")
+    say("  ▶ 청소년이용불가 넷 중 셋이 사행성을 갖고 있다. 사행성이 붙으면 사실상 확정되고,")
+    say("    없으면 한 자릿수로 떨어진다. 흔히 규제 이유로 여겨지는 폭력성은 그만한 힘이 없다.")
+    say("    플랫폼을 봐도 같다. 웹보드가 많은 온라인 게임은 양쪽 다 높고, 폭력적이라 여겨지는")
+    say("    콘솔(비디오 게임)은 양쪽 다 낮다.")
+    say("")
+    say("  ※ 다만 이것은 '위원회가 직접 심의한 게임물'의 이야기다. 게임 등급의 대부분은")
+    say("    사업자가 스스로 매기며 그쪽에는 사행성 게임이 사실상 없다(compare_rater.py 참조).")
+
+    res["결론"] = {"청불건수": int(len(yr)),
+                 "청불_항목구성": {n: [c, round(r, 4)] for n, c, r in compose},
+                 "사행성있음": [len(has), round(float(has["is_youth_restricted"].mean()), 4)],
+                 "사행성없음": [len(no), round(float(no["is_youth_restricted"].mean()), 4)],
+                 "플랫폼": plat}
 
 
 # ───────────────────────────────── §1 무엇이 얼마나 있나
@@ -332,9 +385,10 @@ def write_html() -> Path:
 </style></head><body><div class="wrap">
 <h1>게임물 등급분류 현황 EDA</h1>
 <div class="sub">게임물관리위원회 Open API 수집분 29,417건 · 2007-04 ~ 2026-09 · 생성 {datetime.now():%Y-%m-%d %H:%M}</div>
-<div class="key"><b>영등위와 결정 구조가 다르다.</b> 영등위는 관람등급이 내용정보 7항목의 최고값과
-항등 관계였다. 게임위는 내용정보에 수준이 없고 해당 항목의 이름만 나열되며, 항목이 하나만 붙어도
-청소년이용불가 비율이 크게 오른다. 즉 <b>수준이 아니라 무엇이 붙었느냐</b>가 등급을 가른다.</div>
+<div class="key"><b>게임에서 청소년이용불가를 만드는 것은 폭력이나 선정성이 아니라 도박성이다.</b>
+청소년이용불가를 받은 게임의 76.3%가 사행성을 갖고 있고, 사행성이 붙으면 95.3%가 청소년이용불가가 된다.
+없으면 8.9%다. 영상물이 항목별 점수의 최고값으로 등급을 정하는 것과 달리, 게임물은 수준 없이
+<b>어떤 항목이 붙었느냐</b>로 갈린다.</div>
 <pre>{body}</pre>
 </div></body></html>"""
     p = OUT / "eda_grac_report.html"
@@ -351,6 +405,7 @@ def main() -> None:
     df = load()
     res: dict = {"생성": datetime.now().isoformat(timespec="seconds"), "표본": int(len(df))}
 
+    s0(df, res)
     s1(df, res)
     s2(df, res)
     s3(df, res)
