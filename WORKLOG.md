@@ -283,6 +283,8 @@
 | 산출물 | 경로 |
 |---|---|
 | PRD (최신) | `docs\PRD_게임영상물_등급분류_분석_v1.5_260908.docx` |
+| 강사 회신 (최신) | `docs\강사피드백_회신_260908.docx` — **읽을 것은 docx**. md 는 저장소 사본 |
+| 회신 생성 스크립트 | `docs\make_reply.py` |
 | 게임물 정제·EDA | `src\clean_grac.py` · `src\eda_grac.py` · `outputs\eda_grac_report.html` |
 | 매체 비교 | `src\compare_media.py` · `outputs\compare_media_report.html` |
 | 누가 매기는가 (비교군) | `src\clean_self.py` · `src\compare_rater.py` · `outputs\compare_rater_report.html` |
