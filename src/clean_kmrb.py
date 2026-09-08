@@ -12,10 +12,17 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+
+# 윈도우 콘솔(cp949)에서 em dash 같은 글자에 죽지 않도록. 저장되는 파일에는 영향 없다.
+try:
+    sys.stdout.reconfigure(errors="replace")
+except (AttributeError, OSError):
+    pass
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "data" / "processed"
@@ -30,8 +37,12 @@ GRADE_TO_AGE = {
     "제한상영가": 19,          # 영화 쪽 표기. 게임물·영화와 통합할 때 대비
 }
 
-# 내용정보 7종. API가 이름표를 주지 않아 번호로만 온다(항목명 대응은 미확정).
+# 내용정보 7종. API가 이름표를 주지 않아 번호로만 온다.
+# 번호-이름 대응은 2026-09-07 확정 — 같은 응답의 rtCoreHarmRsnNm(결정사유)이 등급을 결정한
+# 항목을 이름으로 담고 있어 그것으로 밝혔다. src/verify_stdname.py 로 재현된다.
+# ※ 공공데이터포털 메타데이터의 항목 순서는 4·5·6번이 실제와 다르므로 따르지 말 것.
 CONTENT_COLS = [f"rtStdName{i}" for i in range(1, 8)]
+CONTENT_NAMES = {1: "주제", 2: "선정성", 3: "폭력성", 4: "대사", 5: "공포", 6: "약물", 7: "모방위험"}
 
 # Y/N 플래그
 FLAG_COLS = ["pokFlag", "yakSmkFlag", "yakDrkFlag", "yakDrgFlag", "moSuiFlag", "moHarmFlag"]
@@ -192,6 +203,19 @@ def report(df: pd.DataFrame) -> None:
         print(f"  {col:<20} {rate*100:5.1f}%{mark}")
 
 
+def add_named_levels(df: pd.DataFrame) -> pd.DataFrame:
+    """rtStdNameN_lv 에 이름을 붙인 별칭 컬럼을 덧붙인다(내용_선정성 등).
+
+    번호 컬럼을 지우지 않고 더하기만 한다. 기존 스크립트는 그대로 돌아가고,
+    새로 쓰는 분석에서는 이름으로 바로 집을 수 있다.
+    """
+    for i, name in CONTENT_NAMES.items():
+        col = f"rtStdName{i}_lv"
+        if col in df.columns:
+            df[f"내용_{name}"] = df[col]
+    return df
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", default="", help="원본 parquet 경로 (기본: 가장 최근 것)")
@@ -202,7 +226,7 @@ def main() -> None:
     df = pd.read_parquet(src)
     print(f"  {len(df):,}행 × {len(df.columns)}열 읽음")
 
-    out = clean(df)
+    out = add_named_levels(clean(df))
     report(out)
 
     dest = OUT_DIR / f"kmrb_video_clean_{datetime.now():%y%m%d}.parquet"
