@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-최종 EDA 보고서 생성 — 흩어져 있던 다섯 개 리포트를 한 문서로
+최종 보고서 생성 — 인사이트 순서로
 
-지금까지 분석을 할 때마다 리포트가 하나씩 생겨 다섯 개가 됐다. 순서대로 읽으면
-흐름은 맞지만 남에게 건네기에는 불편하다. 이 스크립트가 그것을 한 편으로 합친다.
+처음에는 작업한 순서(수집 → 규칙 확인 → 비교)대로 썼다. 그렇게 하니 읽고 나서도
+"그래서 무슨 뜻인가"가 남지 않는다는 지적을 받았다. 맞는 지적이라 다시 짰다.
 
-    영상물 현황 EDA        eda_report.html
-    등급 결정 구조         stage4_report.html
-    게임물 현황 EDA        eda_grac_report.html
-    매체 간 비교           compare_media_report.html
-    누가 매기는가          compare_rater_report.html
-        ↓
-    최종 보고서            outputs/final_report.html
+    바꾸기 전                            바꾼 뒤
+    등급은 무엇으로 정해지는가            청소년이용불가를 만드는 것
+    1부 영상물 → 2부 게임물 → 3부 비교     결론 세 가지를 차례로, 근거는 각 장 안에
+    규칙·이진화 설명이 맨 앞               "어떻게 확인했나"로 묶어 맨 뒤로
 
 값은 전부 정제본에서 다시 계산한다. 원본이 갱신되면 이 스크립트만 다시 돌리면 된다.
 
@@ -36,78 +33,96 @@ ROOT = Path(__file__).resolve().parents[1]
 PROC = ROOT / "data" / "processed"
 OUT = ROOT / "outputs"
 
-NAMES = {1: "주제", 2: "선정성", 3: "폭력성", 4: "대사", 5: "공포", 6: "약물", 7: "모방위험"}
 LV = [f"rtStdName{i}_lv" for i in range(1, 8)]
 GRADES = ["전체관람가", "12세", "15세", "청소년관람불가", "제한관람가"]
 AGES = [0, 12, 15, 18, 19]
 LEVEL_TO_AGE = {1: 0, 2: 12, 3: 15, 4: 18, 5: 19}
 DESC = ["사행성", "폭력성", "선정성", "언어", "약물", "공포", "범죄"]
-COMPARABLE = ["선정성", "폭력성", "공포", "약물"]
-KMRB_COL = {"선정성": "rtStdName2_lv", "폭력성": "rtStdName3_lv",
-            "공포": "rtStdName5_lv", "약물": "rtStdName6_lv"}
-KMRB_OTHER = ["rtStdName1_lv", "rtStdName4_lv", "rtStdName7_lv"]
-GRAC_OTHER = ["사행성", "언어", "범죄"]
-
-
-def ym(ts) -> str:
-    """2009년 1월. 윈도우에서는 %-m 이 안 먹어 직접 만든다."""
-    return f"{ts.year}년 {ts.month}월"
 
 
 def ymd(ts) -> str:
     return f"{ts.year}년 {ts.month}월 {ts.day}일"
 
 
-def latest(pattern: str) -> Path:
-    files = sorted(PROC.glob(pattern))
-    if not files:
-        sys.exit(f"[중단] {pattern} 정제본이 없습니다.")
-    return files[-1]
+def latest(p: str) -> Path:
+    f = sorted(PROC.glob(p))
+    if not f:
+        sys.exit(f"[중단] {p} 정제본이 없습니다.")
+    return f[-1]
 
 
 def js(o) -> str:
     return json.dumps(o, ensure_ascii=False)
 
 
-# ══════════════════════════════════════════════ 값 계산
+# ══════════════════════════════════════════ 값 계산
 def compute() -> dict:
     k = pd.read_parquet(latest("kmrb_video_clean_*.parquet")).dropna(subset=LV + ["grade_age"]).copy()
     g = pd.read_parquet(latest("grac_game_clean_*.parquet"))
     s = pd.read_parquet(latest("grac_self_clean_*.parquet"))
+    ga = g[~g["is_canceled"]].dropna(subset=["grade_age"]).copy()
     v: dict = {}
 
-    # ── 영상물
+    # ── 결론 1. 게임물 — 무엇이 청소년이용불가를 만드나
+    yr = ga[ga["is_youth_restricted"] == True]          # noqa: E712
+    v["g_n"], v["g_yr_n"] = len(ga), len(yr)
+    v["g_yr_pct"] = round(len(yr) / len(ga) * 100, 1)
+    v["compose"] = sorted(
+        [[n, int(yr[f"내용_{n}"].sum()), round(float(yr[f"내용_{n}"].mean()) * 100, 1)] for n in DESC],
+        key=lambda r: -r[1])
+    has, no = ga[ga["내용_사행성"] == 1], ga[ga["내용_사행성"] == 0]
+    v["gam"] = {"has_n": len(has), "has_yr": round(float(has["is_youth_restricted"].mean()) * 100, 1),
+                "no_n": len(no), "no_yr": round(float(no["is_youth_restricted"].mean()) * 100, 1)}
+    solo = []
+    for n in DESC:
+        sub = ga[(ga[f"내용_{n}"] == 1) & (ga["n_descriptors"] == 1)]
+        if len(sub) >= 20:
+            solo.append([n, len(sub), round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
+    v["solo"] = sorted(solo, key=lambda r: -r[2])
+    plat = []
+    for p, sub in ga.groupby("platform"):
+        if len(sub) < 300:
+            continue
+        plat.append([str(p), len(sub), round(float(sub["내용_사행성"].mean()) * 100, 1),
+                     round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
+    v["plat"] = sorted(plat, key=lambda r: -r[2])
+
+    # ── 결론 2. 그 심의망의 크기
+    lo, hi = s["rated_date"].min(), s["rated_date"].max()
+    same = ga[(ga["rated_date"] >= lo) & (ga["rated_date"] <= hi)]
+    v["rater"] = {"from": ymd(lo), "to": ymd(hi), "days": (hi - lo).days,
+                  "com_n": len(same), "self_n": len(s),
+                  "com_yr": round(float(same["is_youth_restricted"].mean()) * 100, 1),
+                  "self_yr": round(float(s["is_youth_restricted"].mean()) * 100, 2),
+                  "ratio": round(len(s) / max(len(same), 1)),
+                  "share": round(len(same) / (len(same) + len(s)) * 100, 2),
+                  "self_gam": round(float(s["내용_사행성"].mean()) * 100, 2),
+                  "com_gam": round(float(ga["내용_사행성"].mean()) * 100, 1),
+                  "self_all": round(float((s["grade_age"] == 0).mean()) * 100, 1)}
+
+    # ── 결론 3. 영상물 — 판단이 들어가는 곳
     k["cmax"] = k[LV].max(axis=1).astype(int)
-    v["kmrb_n"] = len(k)
-    v["kmrb_from"] = ym(k["rt_date"].min())
-    v["kmrb_to"] = ym(k["rt_date"].max())
-
-    rule = []
-    for lv in range(1, 6):
-        sub = k[k["cmax"] == lv]
-        rule.append([lv] + [int((sub["grade_age"] == a).sum()) for a in AGES])
-    v["rule"] = rule
+    v["k_n"] = len(k)
     ok = (k["cmax"].map(LEVEL_TO_AGE) == k["grade_age"])
-    v["rule_rate"] = round(float(ok.mean()) * 100, 2)
-    v["rule_miss"] = int((~ok).sum())
-    by_nota = {}
-    for nota, sub in k.groupby("content_notation"):
-        if len(sub) < 100:
+    v["rule_rate"], v["rule_miss"] = round(float(ok.mean()) * 100, 2), int((~ok).sum())
+    v["rule"] = [[lv] + [int(((k["cmax"] == lv) & (k["grade_age"] == a)).sum()) for a in AGES]
+                 for lv in range(1, 6)]
+    v["rule_nota"] = {str(n): [len(sub),
+                               round(float((sub["cmax"].map(LEVEL_TO_AGE) == sub["grade_age"]).mean()) * 100, 3)]
+                      for n, sub in k.groupby("content_notation") if len(sub) > 100}
+    adj = k.dropna(subset=["hope_grade_age"])
+    d = adj["grade_age"] - adj["hope_grade_age"]
+    v["adj"] = {"same": round(float((d == 0).mean()) * 100, 1),
+                "up": round(float((d > 0).mean()) * 100, 1),
+                "down": round(float((d < 0).mean()) * 100, 1),
+                "n": len(adj)}
+    hope = []
+    for gr, sub in adj.groupby("hope_grade_age"):
+        if len(sub) < 500:
             continue
-        r = float((sub["cmax"].map(LEVEL_TO_AGE) == sub["grade_age"]).mean())
-        by_nota[str(nota)] = [len(sub), round(r * 100, 3)]
-    v["rule_nota"] = by_nota
-
-    year = []
-    for y, sub in k.groupby(k["rt_date"].dt.year):
-        if len(sub) < 100:
-            continue
-        year.append([int(y), len(sub)] + [round(float((sub["grade_age"] == a).mean()) * 100, 1) for a in AGES])
-    v["year"] = year
-
-    kind = k["kindName"].value_counts().head(6)
-    v["kind"] = [[str(n), int(c), round(float(k.loc[k["kindName"] == n, "grade_age"].ge(18).mean()) * 100, 1)]
-                 for n, c in kind.items()]
+        up = float(((sub["grade_age"] - sub["hope_grade_age"]) > 0).mean())
+        hope.append([f"{int(gr)}세" if gr else "전체관람가", len(sub), round(up * 100, 1)])
+    v["hope"] = hope
     v["adult_share"] = round(float((k["kindName"] == "성인물").mean()) * 100, 1)
 
     reason = k[k["rtCoreHarmRsnNm"].notna() & (k["rtCoreHarmRsnNm"].astype(str).str.strip() != "")]
@@ -115,186 +130,105 @@ def compute() -> dict:
     ex["r"] = ex["r"].str.strip()
     ex = ex[ex["r"] != ""]
     order = list(ex["r"].value_counts().index)
-    heat = []
-    for kd in reason["kindName"].value_counts().head(5).index:
-        base = reason[reason["kindName"] == kd]
-        sub = ex[ex["kindName"] == kd]
-        heat.append([str(kd)] + [round(float((sub["r"] == n).sum()) / len(base) * 100, 1) for n in order])
-    v["reason_names"], v["heat"] = order, heat
+    v["reason_names"] = order
+    v["heat"] = [[str(kd)] + [round(float((ex[ex["kindName"] == kd]["r"] == n).sum())
+                                    / len(reason[reason["kindName"] == kd]) * 100, 1) for n in order]
+                 for kd in reason["kindName"].value_counts().head(5).index]
     v["reason_n"] = len(reason)
-    v["reason_span"] = [int(reason["rt_date"].dt.year.min()), int(reason["rt_date"].dt.year.max())]
-
-    adj = k.dropna(subset=["hope_grade_age"])
-    d = adj["grade_age"] - adj["hope_grade_age"]
-    v["adjust"] = [["신청대로", int((d == 0).sum()), round(float((d == 0).mean()) * 100, 1)],
-                   ["위원회가 올림", int((d > 0).sum()), round(float((d > 0).mean()) * 100, 1)],
-                   ["위원회가 내림", int((d < 0).sum()), round(float((d < 0).mean()) * 100, 1)]]
-
-    # ── 게임물
-    ga = g[~g["is_canceled"]].dropna(subset=["grade_age"]).copy()
-    v["grac_n"] = len(g)
-    v["grac_from"], v["grac_to"] = f"{g['rated_date'].min():%Y}", f"{g['rated_date'].max():%Y}"
-    v["grac_empty"] = int((~g["has_descriptor"]).sum())
-    v["grac_empty_pct"] = round(float((~g["has_descriptor"]).mean()) * 100, 1)
-    v["grac_empty_yr"] = round(float(g.loc[~g["has_descriptor"], "is_youth_restricted"].dropna().mean()) * 100, 2)
-    solo = []
-    for n in DESC:
-        sub = ga[(ga[f"내용_{n}"] == 1) & (ga["n_descriptors"] == 1)]
-        if len(sub) < 20:
-            continue
-        solo.append([n, len(sub), round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
-    v["grac_solo"] = sorted(solo, key=lambda r: -r[2])
-    v["grac_grade"] = [[str(n), int(c)] for n, c in g["givenrate"].value_counts().items()]
-    v["grac_cancel"] = int(g["is_canceled"].sum())
-
-    # ── 매체 비교 (3점 이상을 '있음'으로)
-    kk = k[~k["kindName"].astype(str).eq("성인물")].copy()
-    keep = ~(kk[KMRB_OTHER] >= 3).any(axis=1)
-    kk = kk[keep]
-    gg = ga[ga[[f"내용_{n}" for n in GRAC_OTHER]].sum(axis=1) == 0]
-    cmp_rows = []
-    for n in COMPARABLE:
-        ksub = kk[(kk[KMRB_COL[n]] >= 3) &
-                  (kk[[KMRB_COL[m] for m in COMPARABLE if m != n]].lt(3).all(axis=1))]
-        gsub = gg[(gg[f"내용_{n}"] == 1) & (gg["n_descriptors"] == 1)]
-        if len(ksub) < 30 or len(gsub) < 30:
-            continue
-        cmp_rows.append([n, len(ksub), round(float(ksub["grade_age"].ge(18).mean()) * 100, 1),
-                         len(gsub), round(float(gsub["is_youth_restricted"].mean()) * 100, 1)])
-    v["compare"] = sorted(cmp_rows, key=lambda r: -(r[4] - r[2]))
-    v["cmp_kn"], v["cmp_gn"] = len(kk), len(gg)
-
-    # ── 누가 매기는가
-    lo, hi = s["rated_date"].min(), s["rated_date"].max()
-    same = ga[(ga["rated_date"] >= lo) & (ga["rated_date"] <= hi)]
-    v["rater"] = {"from": ymd(lo), "to": ymd(hi),
-                  "days": (hi - lo).days,
-                  "com_n": len(same), "self_n": len(s),
-                  "com_yr": round(float(same["is_youth_restricted"].mean()) * 100, 1),
-                  "self_yr": round(float(s["is_youth_restricted"].mean()) * 100, 2),
-                  "ratio": round(len(s) / max(len(same), 1)),
-                  "share": round(len(same) / (len(same) + len(s)) * 100, 2),
-                  "com_gam": round(float(ga["내용_사행성"].mean()) * 100, 1),
-                  "self_gam": round(float(s["내용_사행성"].mean()) * 100, 2)}
     return v
 
 
-# ══════════════════════════════════════════════ 문서
+# ══════════════════════════════════════════ 문서
 def render(v: dict) -> str:
-    r = v["rater"]
-    step_n, step_r = v["rule_nota"].get("단계표기", [0, 0])
+    r, gm = v["rater"], v["gam"]
+    top = v["compose"][0]
     gr_n, gr_r = v["rule_nota"].get("등급표기", [0, 0])
-    top = v["grac_solo"][0]
-    bot = v["grac_solo"][-1]
+    st_n, st_r = v["rule_nota"].get("단계표기", [0, 0])
+    hope12 = next((h for h in v["hope"] if h[0] == "12세"), ["12세", 0, 0])
+    adj_total = round(v["adj"]["up"] + v["adj"]["down"], 1)
 
-    return f"""<title>등급분류 데이터 분석 보고</title>
+    return f"""<title>청소년이용불가를 만드는 것</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root {{
   --ground:#F6F7F9; --surface:#FFFFFF; --sunk:#EDEFF3;
   --ink:#141922; --ink2:#3D4654; --muted:#5C6675;
-  --line:#E2E6EC; --line2:#CBD2DC;
-  --accent:#1F3864;
+  --line:#E2E6EC; --line2:#CBD2DC; --accent:#1F3864;
   --s1:#E3E9F2; --s2:#B9C9E1; --s3:#8AA6CE; --s4:#5A7CB0; --s5:#2C4B7C;
   --c1:#2E5FA3; --c2:#A8761C; --c3:#B03A5B;
-  --shadow:0 1px 2px rgba(20,25,34,.04), 0 10px 30px -22px rgba(20,25,34,.4);
 }}
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --ground:#111418; --surface:#181C22; --sunk:#1F242B;
     --ink:#EDF0F4; --ink2:#C3CAD4; --muted:#8D97A5;
-    --line:#272D35; --line2:#39414C;
-    --accent:#9DB8E0;
+    --line:#272D35; --line2:#39414C; --accent:#9DB8E0;
     --s1:#24344A; --s2:#33507A; --s3:#4A73A8; --s4:#7099CE; --s5:#A9C4E6;
     --c1:#5C90CE; --c2:#BC8A33; --c3:#C86680;
-    --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px -24px rgba(0,0,0,.9);
   }}
 }}
 :root[data-theme="dark"] {{
   --ground:#111418; --surface:#181C22; --sunk:#1F242B;
   --ink:#EDF0F4; --ink2:#C3CAD4; --muted:#8D97A5;
-  --line:#272D35; --line2:#39414C;
-  --accent:#9DB8E0;
+  --line:#272D35; --line2:#39414C; --accent:#9DB8E0;
   --s1:#24344A; --s2:#33507A; --s3:#4A73A8; --s4:#7099CE; --s5:#A9C4E6;
   --c1:#5C90CE; --c2:#BC8A33; --c3:#C86680;
-  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px -24px rgba(0,0,0,.9);
 }}
 *{{box-sizing:border-box}}
 body{{
   margin:0; background:var(--ground); color:var(--ink);
   font-family:'IBM Plex Sans KR','Malgun Gothic',system-ui,sans-serif;
-  font-weight:300; font-size:16px; line-height:1.8;
-  padding:0 24px 120px;
-  /* 한글은 기본값이면 단어 중간에서 잘린다(예: '점수를 매 / 긴다').
-     keep-all 로 띄어쓰기에서만 줄을 바꾸고, 아주 긴 낱말만 예외로 쪼갠다. */
-  word-break: keep-all;
-  overflow-wrap: break-word;
+  font-weight:300; font-size:16px; line-height:1.8; padding:0 24px 120px;
+  word-break:keep-all; overflow-wrap:break-word;
 }}
-.wrap{{max-width:1080px;margin:0 auto}}
+.wrap{{max-width:1060px;margin:0 auto}}
 .col{{max-width:660px}}
-h1,h2,h3{{font-family:'Gowun Batang','Batang',serif;font-weight:700;line-height:1.35;text-wrap:balance;margin:0}}
+h1,h2,h3{{font-family:'Gowun Batang','Batang',serif;font-weight:700;line-height:1.35;
+  text-wrap:balance;margin:0;word-break:keep-all}}
 .mono{{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}}
-.num{{font-variant-numeric:tabular-nums}}
 
-header{{padding:96px 0 48px;border-bottom:2px solid var(--line2)}}
+header{{padding:92px 0 44px;border-bottom:2px solid var(--line2)}}
 .kicker{{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--muted);margin-bottom:20px}}
-h1{{font-size:clamp(32px,5.4vw,52px);margin-bottom:20px;letter-spacing:-.01em}}
-.lede{{font-size:18px;color:var(--ink2);max-width:640px;line-height:1.75}}
-.meta{{display:flex;flex-wrap:wrap;gap:0;margin-top:40px;border:1px solid var(--line);
-  border-radius:4px;overflow:hidden;background:var(--surface)}}
-.meta div{{flex:1 1 170px;padding:16px 20px;border-right:1px solid var(--line)}}
-.meta div:last-child{{border-right:0}}
-.meta dt{{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:7px}}
-.meta dd{{margin:0;font-size:21px;font-weight:500;font-variant-numeric:tabular-nums}}
-.meta dd small{{font-size:13px;font-weight:300;color:var(--muted)}}
+h1{{font-size:clamp(32px,5.6vw,54px);margin-bottom:22px;letter-spacing:-.015em}}
+.lede{{font-size:18.5px;color:var(--ink2);max-width:620px;line-height:1.75}}
 
-section{{padding:64px 0;border-bottom:1px solid var(--line)}}
-.shead{{display:flex;gap:18px;align-items:baseline;margin-bottom:14px}}
-.snum{{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.12em;
-  color:var(--muted);border:1px solid var(--line2);border-radius:3px;padding:3px 9px;flex:none;
-  text-transform:uppercase}}
-h2{{font-size:27px}}
-h3{{font-size:19px;margin:36px 0 10px}}
+.summary{{margin-top:44px;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:5px;overflow:hidden}}
+.srow{{background:var(--surface);padding:22px 26px;display:grid;
+  grid-template-columns:112px 1fr;gap:22px;align-items:baseline}}
+.srow .tag{{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted)}}
+.srow p{{margin:0;font-size:16.5px;color:var(--ink);line-height:1.7}}
+.srow b{{font-weight:600}}
+
+section{{padding:68px 0;border-bottom:1px solid var(--line)}}
+.shead{{margin-bottom:18px}}
+.eyebrow{{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px}}
+h2{{font-size:30px;max-width:720px}}
+h3{{font-size:19px;margin:44px 0 10px}}
 p{{margin:0 0 16px}}
-.sdesc{{color:var(--ink2);max-width:640px}}
+.sdesc{{color:var(--ink2);max-width:660px;font-size:17px}}
 
-.finds{{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-  border-radius:4px;overflow:hidden;margin-top:32px}}
-.find{{background:var(--surface);padding:24px 26px;display:grid;
-  grid-template-columns:auto 1fr;gap:20px;align-items:start}}
-.find b{{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);
-  font-weight:500;padding-top:4px}}
-.find h3{{margin:0 0 6px;font-size:18px}}
-.find p{{margin:0;font-size:15px;color:var(--ink2);line-height:1.7}}
-
-figure{{margin:32px 0 0}}
-figcaption{{font-size:14px;color:var(--muted);margin-top:14px;max-width:660px;line-height:1.7}}
+figure{{margin:34px 0 0}}
+figcaption{{font-size:14px;color:var(--muted);margin-top:14px;max-width:680px;line-height:1.7}}
 .scroll{{overflow-x:auto;padding-bottom:6px}}
 .legend{{display:flex;flex-wrap:wrap;gap:8px 20px;margin-bottom:14px;font-size:13px;color:var(--ink2)}}
 .legend span{{display:inline-flex;align-items:center;gap:8px}}
 .sw{{width:11px;height:11px;border-radius:2px;flex:none}}
 
-table{{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}}
-th,td{{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);
-  font-variant-numeric:tabular-nums}}
-th:first-child,td:first-child{{text-align:left}}
-thead th{{color:var(--muted);font-weight:500;font-size:11.5px;letter-spacing:.06em;
-  text-transform:uppercase;border-bottom:1px solid var(--line2)}}
-
 .note{{background:var(--sunk);border-left:3px solid var(--accent);border-radius:0 3px 3px 0;
-  padding:18px 22px;margin:26px 0;font-size:15px;color:var(--ink2);max-width:700px}}
+  padding:18px 22px;margin:28px 0;font-size:15px;color:var(--ink2);max-width:720px}}
 .note b{{color:var(--ink)}}
 
-.hero-stat{{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-end;margin:28px 0 8px}}
-.hero-stat .big{{font-family:'IBM Plex Mono',monospace;font-size:clamp(46px,8vw,76px);
-  font-weight:500;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}}
-.hero-stat p{{margin:0;max-width:380px;font-size:15px;color:var(--ink2)}}
+.big-line{{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-end;margin:32px 0 4px}}
+.big{{font-family:'IBM Plex Mono',monospace;font-size:clamp(44px,7.5vw,72px);font-weight:500;
+  line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}}
+.big-line p{{margin:0;max-width:400px;font-size:15px;color:var(--ink2)}}
 
 #tip{{position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;
   background:var(--ink);color:var(--ground);font-size:12.5px;line-height:1.55;
-  padding:8px 11px;border-radius:4px;z-index:60;max-width:250px;
+  padding:8px 11px;border-radius:4px;z-index:60;max-width:260px;
   font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums}}
 svg text{{font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums}}
 .axis{{font-size:11.5px;fill:var(--muted)}}
@@ -303,172 +237,173 @@ svg text{{font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular
 [data-tip]{{cursor:default}}
 [data-tip]:focus-visible{{outline:2px solid var(--c1);outline-offset:2px}}
 @media (prefers-reduced-motion:reduce){{*{{transition:none!important}}}}
-footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:700px}}
+footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
 </style>
 <div class="wrap">
 
 <header>
-  <div class="kicker">최종 보고 · {datetime.now():%Y년 %m월 %d일}</div>
-  <h1>등급은 무엇으로 정해지는가</h1>
-  <p class="lede">게임물관리위원회와 영상물등급위원회가 공개하는 등급분류 결과를 전량 받아
-  분석했다. 두 기관이 등급을 정하는 방식이 서로 다르다는 것, 그리고 공개된 자료가
-  전체의 얼마만큼인지를 정리한다.</p>
-  <dl class="meta">
-    <div><dt>영상물</dt><dd>{v['kmrb_n']:,}<small> 건</small></dd></div>
-    <div><dt>게임물</dt><dd>{v['grac_n']:,}<small> 건</small></dd></div>
-    <div><dt>비교용 자료</dt><dd>{r['self_n']:,}<small> 건</small></dd></div>
-    <div><dt>수집 범위</dt><dd>전량<small> · 2007~2026</small></dd></div>
-  </dl>
+  <div class="kicker">등급분류 공공데이터 분석 · {datetime.now():%Y년 %m월 %d일}</div>
+  <h1>청소년이용불가를<br>만드는 것</h1>
+  <p class="lede">게임과 영상물의 등급분류 결과를 전량 받아, 무엇이 청소년 이용을 막는 등급을
+  만드는지 확인했다. 통념과 다른 답이 나왔다.</p>
+
+  <div class="summary">
+    <div class="srow"><span class="tag">결론 1</span>
+      <p>게임에서 청소년이용불가를 만드는 것은 폭력이나 선정성이 아니라 <b>도박성</b>이다.
+      청소년이용불가 게임의 <b>{top[2]}%</b>가 사행성을 갖고 있다.</p></div>
+    <div class="srow"><span class="tag">결론 2</span>
+      <p>그런데 그 심의망에 걸리는 것은 게임 전체의 <b>{r['share']}%</b>뿐이다. 나머지는 사업자가
+      스스로 등급을 매기고, 거기서는 청소년이용불가가 <b>{r['self_yr']}%</b>다.</p></div>
+    <div class="srow"><span class="tag">결론 3</span>
+      <p>영상물은 등급에 <b>사람의 판단이 거의 없다</b>. 항목 점수 중 가장 높은 값이 그대로 등급이
+      된다({v['rule_rate']}%). 판단이 들어가는 곳은 신청 등급을 조정하는 {adj_total}%뿐이다.</p></div>
+  </div>
 </header>
 
 <section>
-  <div class="shead"><span class="snum">요약</span><h2>네 가지 발견</h2></div>
-  <p class="sdesc">아래 네 가지가 이 분석의 결론이다. 각각은 뒤의 해당 장에서 근거와 함께 다룬다.</p>
-  <div class="finds">
-    <div class="find"><b>발견 1</b><div>
-      <h3>영상물은 등급을 계산하지 않는다</h3>
-      <p>항목 일곱 가지에 각각 점수를 매기고, 그중 가장 높은 점수를 그대로 등급으로 옮긴다.
-      {v['kmrb_n']:,}건 가운데 {v['rule_rate']}%가 이 규칙을 따르고, 표기가 바뀐 2017년 5월 이후
-      {gr_n:,}건은 어긋난 건이 하나도 없다.</p></div></div>
-    <div class="find"><b>발견 2</b><div>
-      <h3>게임물은 점수가 없고 이름표만 붙는다</h3>
-      <p>대신 어떤 이름표가 붙었느냐가 등급을 가른다. {top[0]}만 붙어도 {top[2]}%가
-      청소년이용불가인데, {bot[0]}만 붙으면 {bot[2]}%다.</p></div></div>
-    <div class="find"><b>발견 3</b><div>
-      <h3>그래서 두 매체를 같은 잣대로 재기 어렵다</h3>
-      <p>한쪽은 점수, 한쪽은 이름표다. 형식을 맞춰 견주면 게임물 쪽이 일관되게 엄하지만,
-      맞추는 기준을 바꾸면 결과도 바뀐다.</p></div></div>
-    <div class="find"><b>발견 4</b><div>
-      <h3>공개된 게임 자료는 전체의 {r['share']}%다</h3>
-      <p>나머지는 사업자가 스스로 매긴 등급이라 공개 목록에 없다. 같은 기간으로 견주면
-      약 {r['ratio']}배 차이다.</p></div></div>
+  <div class="shead">
+    <div class="eyebrow">결론 1 · 게임물 {v['g_n']:,}건</div>
+    <h2>게임 규제의 실체는 도박성이다</h2>
   </div>
-</section>
+  <p class="sdesc">게임을 규제한다고 하면 보통 폭력성이나 선정성을 떠올린다. 청소년이용불가를 받은
+  게임 {v['g_yr_n']:,}건이 실제로 무엇을 갖고 있었는지 보면 다르다.</p>
+  <figure>
+    <div class="scroll"><svg id="c-compose" width="1000" height="{50 + len(v['compose']) * 38}"
+      role="img" aria-label="청소년이용불가 게임물이 가진 내용정보 항목"></svg></div>
+    <figcaption>청소년이용불가 게임 넷 중 셋이 사행성을 갖고 있다. 폭력성과 선정성은 각각 다섯에
+    하나꼴이다. 한 게임이 항목을 여러 개 가질 수 있어 합은 100%를 넘는다.</figcaption>
+  </figure>
 
-<section>
-  <div class="shead"><span class="snum">1부 · 영상물</span><h2>등급은 가장 높은 점수와 같다</h2></div>
-  <p class="sdesc">영상물은 주제·선정성·폭력성·대사·공포·약물·모방위험 일곱 가지에 각각 1점부터
-  5점까지 점수를 매긴다. 그 점수 중 가장 높은 것을 관람등급으로 옮기면 어떻게 되는지 보았다.</p>
+  <h3>사행성이 있고 없고로 갈린다</h3>
   <figure>
-    <div class="scroll"><svg id="c-rule" width="1000" height="330" role="img"
-      aria-label="내용정보 최고 점수와 관람등급의 대응표"></svg></div>
-    <figcaption>대각선에만 짙은 칸이 있다. 가장 높은 점수가 1점이면 전부 전체관람가, 2점이면 전부
-    12세다. 계산해서 나오는 값이 아니라 옮겨 적은 값이라는 뜻이다. 대각선을 벗어난 칸에도 숫자가
-    보이지만 전부 합쳐 {v['rule_miss']}건이라 칠이 거의 드러나지 않는다.</figcaption>
+    <div class="scroll"><svg id="c-gam" width="1000" height="150" role="img"
+      aria-label="사행성 보유 여부에 따른 청소년이용불가 비율"></svg></div>
+    <figcaption>사행성이 붙은 게임은 {gm['has_yr']}%가 청소년이용불가다. 사행성이 없으면
+    {gm['no_yr']}%로 떨어진다. 다른 어떤 항목도 이만한 힘을 갖지 않는다.</figcaption>
   </figure>
-  <div class="note"><b>표기가 바뀐 시점과 규칙이 완전해진 시점이 겹친다.</b>
-  단계로 적던 시기({step_n:,}건)는 {step_r}%가 규칙대로였고, 등급 이름으로 적기 시작한
-  2017년 5월 이후({gr_n:,}건)는 {gr_r}%다. 어긋난 {v['rule_miss']}건은 모두 그 이전이다.</div>
-  <p class="col">이 사실은 분석의 방향을 바꿨다. 내용정보로 등급을 설명하는 것은 같은 값을 두 번 쓰는
-  일이 되기 때문이다. 그래서 답이 정해져 있지 않은 곳으로 질문을 옮겼다. 무엇이 가장 높은 점수를
-  차지했는가, 그리고 신청한 등급과 결정된 등급이 어디서 갈리는가.</p>
-</section>
 
-<section>
-  <div class="shead"><span class="snum">1부 · 영상물</span><h2>등급 구성은 크게 달라졌다</h2></div>
-  <p class="sdesc">해마다 어떤 등급이 얼마나 나왔는지를 비율로 쌓았다. 막대 왼쪽 숫자는 그해 건수다.</p>
+  <h3>항목 하나만 붙었을 때</h3>
   <figure>
-    <div class="legend" id="lg-grade"></div>
-    <div class="scroll"><svg id="c-year" width="1000" height="{70 + len(v['year']) * 27}" role="img"
-      aria-label="연도별 관람등급 구성 비율"></svg></div>
-    <figcaption>2016년을 지나며 구성이 크게 움직인다. 심의가 관대해졌다기보다 등급분류를 신청하는
-    대상 자체가 바뀐 것으로 보인다. 건수가 특정 해에 튀는 것은 그해 신청이 몰린 결과다.</figcaption>
+    <div class="scroll"><svg id="c-solo" width="1000" height="{50 + len(v['solo']) * 36}" role="img"
+      aria-label="항목 하나만 가진 게임물의 청소년이용불가 비율"></svg></div>
+    <figcaption>다른 항목이 섞이지 않은 경우만 모았다. 같은 '항목 하나'인데 결과가 전혀 다르다.
+    사행성만 붙어도 사실상 청소년이용불가가 확정되는 반면, 폭력성만 붙은 게임은 열에 아홉이
+    청소년도 이용할 수 있다.</figcaption>
   </figure>
-  <h3>종류별로 보면</h3>
-  <figure>
-    <div class="scroll"><svg id="c-kind" width="1000" height="{40 + len(v['kind']) * 34}" role="img"
-      aria-label="영상물 종류별 건수와 청소년관람불가 비율"></svg></div>
-    <figcaption>성인물이 {v['adult_share']}%를 차지한다. 성인물은 내용정보와 상관없이 거의 전부
-    청소년관람불가다. 이 치우침을 감안하지 않으면 결론이 뒤집힐 수 있어, 이후 분석에서는 종류를
-    맞춘 뒤 비교했다.</figcaption>
-  </figure>
-</section>
 
-<section>
-  <div class="shead"><span class="snum">1부 · 영상물</span><h2>무엇이 등급을 끌어올렸나</h2></div>
-  <p class="sdesc">등급이 가장 높은 점수와 같다면, 남는 질문은 그 자리를 무엇이 차지했느냐다.
-  자료에는 등급을 정한 이유를 이름으로 적어 둔 칸이 있다. 기록된 것은 {v['reason_n']:,}건,
-  {v['reason_span'][0]}년부터 {v['reason_span'][1]}년까지다.</p>
-  <figure>
-    <div class="scroll"><svg id="c-heat" width="1000" height="{70 + len(v['heat']) * 40}" role="img"
-      aria-label="영상물 종류별로 등급을 결정한 항목의 비율"></svg></div>
-    <figcaption>종류에 따라 뚜렷하게 갈린다. 성인물은 선정성이, 극영화와 숏폼은 폭력성이,
-    뮤직비디오는 약물이 등급을 끌어올린다. 이것은 앞의 규칙에서 저절로 나오는 결과가 아니라
-    콘텐츠 성격의 차이다.</figcaption>
-  </figure>
-  <h3>신청한 등급과 결정된 등급</h3>
-  <p class="col">내용정보와 결정 등급은 같은 값이라 서로를 설명하지 못한다. 그러나 신청 등급은 다르다.
-  신청사가 스스로 적어 낸 값이기 때문이다. 이 자료에서 사람의 판단이 들어가는 곳은 여기뿐이다.</p>
-  <figure>
-    <div class="scroll"><svg id="c-adj" width="1000" height="130" role="img"
-      aria-label="신청 등급 대비 결정 등급의 조정 비율"></svg></div>
-    <figcaption>신청한 대로 결정된 것이 대부분이고, 조정된 경우는 올린 쪽이 내린 쪽보다 많다.</figcaption>
-  </figure>
-</section>
-
-<section>
-  <div class="shead"><span class="snum">2부 · 게임물</span><h2>점수가 없고 이름표만 붙는다</h2></div>
-  <p class="sdesc">게임물은 항목에 점수를 매기지 않는다. 해당하는 항목의 이름만 나열된다.
-  {v['grac_n']:,}건 가운데 {v['grac_empty']:,}건({v['grac_empty_pct']}%)은 이 칸이 비어 있는데,
-  그 건들의 청소년이용불가 비율이 {v['grac_empty_yr']}%였다. 적지 않은 것이 아니라 해당하는 것이
-  없다는 뜻이다.</p>
-  <figure>
-    <div class="scroll"><svg id="c-solo" width="1000" height="{60 + len(v['grac_solo']) * 38}" role="img"
-      aria-label="이름표 하나만 붙은 게임물의 청소년이용불가 비율"></svg></div>
-    <figcaption>이름표가 하나만 붙은 게임물을 모았다. 같은 '하나'인데 결과가 전혀 다르다.
-    {top[0]}이 붙으면 사실상 청소년이용불가가 확정되고, {v['grac_solo'][-2][0]}과 {bot[0]}은
-    붙어도 열에 아홉은 그렇지 않다.</figcaption>
-  </figure>
-  <div class="note">등급을 준 뒤 취소된 건이 {v['grac_cancel']:,}건 있다. 신청 내용과 실제
-  서비스가 다른 경우가 대표적이어서, 내용정보와 등급의 관계를 보는 분석에서는 제외했다.</div>
-</section>
-
-<section>
-  <div class="shead"><span class="snum">3부 · 두 매체</span><h2>같은 이름표라도 무게가 다르다</h2></div>
-  <p class="sdesc">이름이 똑같은 네 가지(선정성·폭력성·공포·약물)만 골라 비교했다. 영상물은 점수가
-  있으므로 3점 이상이면 있는 것으로 놓아 형식을 맞췄다. 비교 대상 밖의 항목이 붙은 건은 양쪽 모두
-  뺐다. 영상물 {v['cmp_kn']:,}건, 게임물 {v['cmp_gn']:,}건이 남았다.</p>
+  <h3>플랫폼을 보면 더 분명하다</h3>
   <figure>
     <div class="legend">
-      <span><i class="sw" style="background:var(--c1)"></i>영상물</span>
-      <span><i class="sw" style="background:var(--c2)"></i>게임물</span>
+      <span><i class="sw" style="background:var(--c2)"></i>사행성이 붙은 비율</span>
+      <span><i class="sw" style="background:var(--c1)"></i>청소년이용불가 비율</span>
     </div>
-    <div class="scroll"><svg id="c-cmp" width="1000" height="{60 + len(v['compare']) * 52}" role="img"
-      aria-label="같은 이름표를 가졌을 때 매체별 청소년 이용 제한 비율"></svg></div>
-    <figcaption>네 가지 모두 게임물 쪽이 높다. 아무 이름표도 붙지 않은 건은 양쪽 다 0%에 가까워
-    (영상물 0.0% · 게임물 0.1%) 비교가 제대로 짝지어졌음을 확인했다.</figcaption>
+    <div class="scroll"><svg id="c-plat" width="1000" height="{50 + len(v['plat']) * 52}" role="img"
+      aria-label="플랫폼별 사행성 비율과 청소년이용불가 비율"></svg></div>
+    <figcaption>두 막대가 거의 붙어 다닌다. 웹보드 게임이 많은 온라인 게임은 사행성도
+    청소년이용불가도 가장 높고, 흔히 폭력적이라 여겨지는 콘솔(비디오 게임)은 양쪽 다 가장 낮다.
+    등급을 가르는 것이 폭력이 아니라 도박성이라는 뜻이다.</figcaption>
   </figure>
-  <div class="note"><b>이 결론에는 조건이 붙는다.</b> '3점 이상이면 있는 것으로 친다'는 기준은
-  분석자가 정한 것이지 자료가 정해 준 것이 아니다. 기준을 4점 이상으로 바꾸면 영상물 쪽이 100%가
-  되어 비교 자체가 성립하지 않는다. 영상물은 4점이 곧 청소년관람불가이기 때문이다.
-  그래서 이 결과를 말할 때는 기준을 반드시 함께 적는다.</div>
 </section>
 
 <section>
-  <div class="shead"><span class="snum">4부 · 자료의 한계</span><h2>공개된 것은 전체의 일부다</h2></div>
-  <p class="sdesc">게임 등급은 두 갈래로 매겨진다. 위원회가 직접 심의하는 것과, 구글·애플 같은
-  사업자가 스스로 매기는 것이다. 공개 자료로 받을 수 있는 것은 앞의 것뿐이다.
-  같은 기간({r['from']} ~ {r['to']}, 약 {r['days']}일)으로 맞춰 크기를 재 보았다.</p>
-  <div class="hero-stat">
+  <div class="shead">
+    <div class="eyebrow">결론 2 · 같은 기간 비교</div>
+    <h2>그 심의망에 걸리는 것은 {r['share']}%뿐이다</h2>
+  </div>
+  <p class="sdesc">앞의 이야기는 위원회가 직접 심의한 게임에만 해당한다. 게임 등급은 두 갈래로
+  매겨진다. 위원회가 심의하는 것과, 구글·애플 같은 사업자가 스스로 매기는 것이다.
+  같은 기간({r['from']} ~ {r['to']}, 약 {r['days']}일)으로 견줘 보았다.</p>
+  <div class="big-line">
     <div class="big">{r['share']}<span style="font-size:.42em">%</span></div>
-    <p>같은 기간에 공개 자료로 볼 수 있었던 몫이다. 위원회 심의 {r['com_n']:,}건 대
-    사업자 자체 분류 {r['self_n']:,}건, 약 {r['ratio']}배 차이다.</p>
+    <p>같은 기간에 위원회 심의가 차지한 몫이다. 위원회 {r['com_n']:,}건 대 사업자 자체 분류
+    {r['self_n']:,}건, 약 {r['ratio']}배 차이다.</p>
   </div>
   <figure>
-    <div class="scroll"><svg id="c-rater" width="1000" height="190" role="img"
-      aria-label="같은 기간 위원회 심의와 사업자 자체 분류의 건수 비교"></svg></div>
-    <figcaption>19년치 위원회 물량보다 7주치 자체 분류가 더 많다. 이 프로젝트의 게임물 분석 결과는
-    '게임물 전체'가 아니라 '위원회가 직접 심의한 게임물'의 이야기로 읽어야 한다.</figcaption>
+    <div class="scroll"><svg id="c-rater" width="1000" height="200" role="img"
+      aria-label="같은 기간 위원회 심의와 사업자 자체 분류의 건수"></svg></div>
+    <figcaption>19년치 위원회 물량보다 7주치 자체 분류가 더 많다. 그리고 자체 분류에서
+    청소년이용불가는 {r['self_yr']}%, 전체이용가가 {r['self_all']}%다.</figcaption>
   </figure>
-  <div class="note"><b>다만 이 차이를 심의의 엄격함으로 읽어서는 안 된다.</b> 두 갈래에 들어오는
-  게임이 애초에 다르다. 사업자 자체 분류에는 사행성 게임이 사실상 없다({r['self_gam']}%,
-  위원회 쪽은 {r['com_gam']}%). 그런데 사행성만 붙어도 청소년이용불가가 {top[2]}%다.
+  <div class="note"><b>이 차이를 심의의 엄격함으로 읽어서는 안 된다.</b> 두 갈래에 들어오는 게임이
+  애초에 다르다. 사업자 자체 분류에는 사행성 게임이 사실상 없다({r['self_gam']}%, 위원회 쪽은
+  {r['com_gam']}%). 결론 1에서 보았듯 사행성만 붙어도 청소년이용불가가 {gm['has_yr']}%이니,
   등급 분포의 차이는 상당 부분 여기서 온다.</div>
-  <h3>남는 한계</h3>
-  <p class="col">영상물 자료에도 같은 성격의 문제가 있다. 성인물이 {v['adult_share']}%를 차지하는데
-  성인물은 내용정보와 상관없이 거의 전부 청소년관람불가다. 실제로 이 치우침 때문에 1차 분석 결론이
-  한 번 뒤집혔다. 비교용으로 쓴 자체 분류 자료는 약 7주치가 전부이고 갱신이 불가능해, 추세를 읽는
-  데는 쓰지 않고 한 시점의 규모 비교로만 썼다.</p>
+  <p class="col">그래도 이 숫자는 중요하다. 공개 자료만 보고 "게임물의 청소년이용불가가
+  {v['g_yr_pct']}%"라고 말하면 실제와 크게 어긋난다. 두 갈래를 합치면 그 값은 1% 아래로 내려간다.
+  <b>한국 게임 등급분류의 실질은 심의가 아니라 자율규제이고, 위원회 심의는 도박성이 문제 되는
+  좁은 영역에 집중되어 있다.</b></p>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">결론 3 · 영상물 {v['k_n']:,}건</div>
+    <h2>영상물 등급에는 판단이 거의 없다</h2>
+  </div>
+  <p class="sdesc">영상물은 주제·선정성·폭력성·대사·공포·약물·모방위험 일곱 가지에 각각 1점부터
+  5점까지 점수를 매긴다. 그 점수 중 가장 높은 것을 그대로 등급으로 옮기면 어떻게 되는지 보았다.</p>
+  <figure>
+    <div class="scroll"><svg id="c-rule" width="1000" height="330" role="img"
+      aria-label="내용정보 최고 점수와 관람등급의 대응"></svg></div>
+    <figcaption>대각선에만 짙은 칸이 있다. 가장 높은 점수가 1점이면 전부 전체관람가, 2점이면 전부
+    12세다. {v['k_n']:,}건 중 {v['rule_rate']}%가 이렇고, 표기가 바뀐 2017년 5월 이후 {gr_n:,}건은
+    어긋난 것이 하나도 없다. 대각선을 벗어난 칸을 다 합쳐도 {v['rule_miss']}건이라 칠이 거의
+    드러나지 않는다.</figcaption>
+  </figure>
+  <div class="note">등급은 계산해서 나오는 값이 아니라 옮겨 적은 값이다. 그래서 <b>내용정보로 등급을
+  설명하는 분석은 성립하지 않는다.</b> 같은 값을 두 번 쓰는 셈이기 때문이다. 이 사실을 확인한 뒤
+  질문을 아래로 옮겼다.</div>
+
+  <h3>판단이 들어가는 유일한 곳</h3>
+  <p class="col">신청 등급은 다르다. 신청사가 스스로 적어 낸 값이라 결정 등급과 같은 값이 아니다.
+  전체 {v['adj']['n']:,}건 중 {adj_total}%에서 조정이 일어났다(위로 {v['adj']['up']}% ·
+  아래로 {v['adj']['down']}%).</p>
+  <figure>
+    <div class="scroll"><svg id="c-hope" width="1000" height="{50 + len(v['hope']) * 44}" role="img"
+      aria-label="신청 등급별 상향 조정 비율"></svg></div>
+    <figcaption>{hope12[0]}로 신청한 건의 {hope12[2]}%가 위로 조정됐다. 신청사가 등급을 가장 많이
+    낮게 예상하는 지점이다. 반대로 청소년관람불가로 신청하면 더 올라갈 자리가 거의 없어 조정이
+    드물다.</figcaption>
+  </figure>
+
+  <h3>무엇이 가장 높은 점수를 차지했나</h3>
+  <figure>
+    <div class="scroll"><svg id="c-heat" width="1000" height="{70 + len(v['heat']) * 40}" role="img"
+      aria-label="영상물 종류별로 등급을 결정한 항목"></svg></div>
+    <figcaption>자료에는 등급을 정한 이유를 이름으로 적어 둔 칸이 있다({v['reason_n']:,}건).
+    종류에 따라 뚜렷하게 갈린다. 성인물은 선정성, 극영화와 숏폼은 폭력성, 뮤직비디오는 약물이다.
+    게임에서 사행성이 했던 역할을 영상물에서는 종류마다 다른 항목이 맡는다.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">부록</div>
+    <h2>어떻게 확인했나, 무엇을 못 했나</h2>
+  </div>
+
+  <h3>자료</h3>
+  <p class="col">두 기관이 공개하는 등급분류 결과를 각각 전량 받았다. 기관이 알려주는 총 건수와
+  정확히 맞는다. 영상물 {v['k_n']:,}건(2009~2026), 게임물 {v['g_n']:,}건(2007~2026)이다.
+  결론 2에 쓴 자체 분류 자료 {r['self_n']:,}건은 이 분석에서 수집한 것이 아니라 다른 일을 하다
+  확보해 둔 것으로, 약 7주치가 전부이고 갱신이 불가능하다. 그래서 추세를 읽는 데는 쓰지 않고
+  한 시점의 규모 비교로만 썼다.</p>
+
+  <h3>두 매체를 견줄 때의 한계</h3>
+  <p class="col">영상물은 항목마다 점수가 있고 게임물은 이름표만 있다. 같은 잣대로 재려면 영상물을
+  "몇 점 이상이면 있는 것으로 친다"고 놓아야 하는데, 그 기준을 자료가 정해 주지 않는다. 3점으로
+  놓으면 게임물이 더 엄하게 나오고, 4점으로 놓으면 영상물이 정의상 100%가 되어 비교가 성립하지
+  않는다. 그래서 이 보고서는 두 매체의 엄격함을 견주는 결론을 내지 않았다.</p>
+
+  <h3>표본의 치우침</h3>
+  <p class="col">영상물은 성인물이 {v['adult_share']}%를 차지하고, 성인물은 내용정보와 상관없이
+  거의 전부 청소년관람불가다. 이 치우침을 감안하지 않으면 결론이 뒤집힌다. 실제로 1차 분석에서
+  "항목이 여러 개 겹칠수록 등급이 올라간다"는 결과를 냈다가 폐기했다. 성인물이 특정 구간에 몰려
+  있어 생긴 착시였다.</p>
+
+  <h3>단계표기 시기의 예외</h3>
+  <p class="col">결론 3의 규칙에서 어긋난 {v['rule_miss']}건은 모두 2017년 5월 이전이다. 그 시기
+  ({st_n:,}건)에는 {st_r}%가 규칙대로였고, 표기를 등급 이름으로 바꾼 뒤로는 {gr_r}%다. 표기 방식이
+  바뀐 시점과 규칙이 완전해진 시점이 겹친다.</p>
 </section>
 
 <footer>
@@ -486,29 +421,112 @@ const el=(n,a={{}})=>{{const e=document.createElementNS(NS,n);for(const k in a)e
 const fmt=n=>n.toLocaleString("ko-KR");
 const GRADES={js(GRADES)};
 const RAMP=["--s1","--s2","--s3","--s4","--s5"];
+const COMPOSE={js(v['compose'])};
+const GAM={js(v['gam'])};
+const SOLO={js(v['solo'])};
+const PLAT={js(v['plat'])};
+const RATER={js(v['rater'])};
 const RULE={js(v['rule'])};
-const YEAR={js(v['year'])};
-const KIND={js(v['kind'])};
+const HOPE={js(v['hope'])};
 const REASONS={js(v['reason_names'])};
 const HEAT={js(v['heat'])};
-const ADJ={js(v['adjust'])};
-const SOLO={js(v['grac_solo'])};
-const CMP={js(v['compare'])};
-const RATER={js(v['rater'])};
+const YRN={v['g_yr_n']};
 
 const tip=document.getElementById("tip");
 function bindTip(node,text){{
   node.setAttribute("data-tip",text); node.setAttribute("tabindex","0");
   const show=e=>{{tip.textContent=text;tip.style.opacity="1";
-    const r=node.getBoundingClientRect();
-    tip.style.left=Math.min(window.innerWidth-260,(e.clientX||r.left)+14)+"px";
-    tip.style.top=((e.clientY||r.top)-16)+"px";}};
+    const b=node.getBoundingClientRect();
+    tip.style.left=Math.min(window.innerWidth-270,(e.clientX||b.left)+14)+"px";
+    tip.style.top=((e.clientY||b.top)-16)+"px";}};
   node.addEventListener("mousemove",show); node.addEventListener("focus",show);
   node.addEventListener("mouseleave",()=>tip.style.opacity="0");
   node.addEventListener("blur",()=>tip.style.opacity="0");
 }}
+function hbar(id,rows,opt){{
+  const svg=document.getElementById(id); if(!svg) return;
+  const L=opt.L||100,R=opt.R||210,W=1000-L-R,H=opt.H||24,G=opt.G||14;
+  const max=opt.max||Math.max(...rows.map(r=>r.v));
+  rows.forEach((row,i)=>{{
+    const y=10+i*(H+G);
+    const t=el("text",{{x:0,y:y+17,class:"rowlab"}});t.textContent=row.label;svg.appendChild(t);
+    const w=Math.max(W*row.v/max,2);
+    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:2,fill:row.fill}});
+    bindTip(rect,row.tip); svg.appendChild(rect);
+    const lb=el("text",{{x:L+w+12,y:y+17,class:"vlab"}});lb.textContent=row.right;svg.appendChild(lb);
+  }});
+}}
 
-/* 1. 최고 점수 x 관람등급 */
+/* 결론1 — 청불 게임의 구성 */
+hbar("c-compose",COMPOSE.map(([n,c,p])=>({{
+  label:n, v:p, fill:n==="사행성"?"var(--c2)":"var(--s3)",
+  right:`${{p}}%   (${{fmt(c)}}건)`,
+  tip:`청소년이용불가 게임 ${{fmt(YRN)}}건 중 ${{n}}을 가진 것 ${{fmt(c)}}건 · ${{p}}%`}})),
+  {{max:100,H:22,G:16}});
+
+/* 결론1 — 사행성 유무 */
+(function(){{
+  const svg=document.getElementById("c-gam"),L=150,R=230,W=1000-L-R,H=34,G=22;
+  [["사행성 있음",GAM.has_n,GAM.has_yr,"var(--c2)"],
+   ["사행성 없음",GAM.no_n,GAM.no_yr,"var(--s2)"]].forEach(([name,n,pct,col],i)=>{{
+    const y=16+i*(H+G);
+    const t=el("text",{{x:0,y:y+23,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
+    const w=Math.max(W*pct/100,2);
+    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:3,fill:col}});
+    bindTip(rect,`${{name}} ${{fmt(n)}}건 중 ${{pct}}%가 청소년이용불가`);
+    svg.appendChild(rect);
+    const lb=el("text",{{x:L+w+13,y:y+23,class:"vlab"}});
+    lb.textContent=`${{pct}}%   (${{fmt(n)}}건 중)`;svg.appendChild(lb);
+  }});
+  const n=el("text",{{x:L,y:16+2*(H+G)+10,class:"axis"}});
+  n.textContent="가로축 = 청소년이용불가 비율 (0~100%)";svg.appendChild(n);
+}})();
+
+/* 결론1 — 항목 하나만 */
+hbar("c-solo",SOLO.map(([n,c,p])=>({{
+  label:n, v:p, fill:`var(${{RAMP[Math.min(4,Math.floor(p/22))]}})`,
+  right:`${{p}}%   (${{fmt(c)}}건)`,
+  tip:`${{n}}만 붙은 게임물 ${{fmt(c)}}건 중 ${{p}}%가 청소년이용불가`}})),
+  {{max:100,H:22,G:14}});
+
+/* 결론1 — 플랫폼 */
+(function(){{
+  const svg=document.getElementById("c-plat"),L=130,R=210,W=1000-L-R,H=17,G=5,ROW=52;
+  PLAT.forEach(([name,n,gam,yr],i)=>{{
+    const y=14+i*ROW;
+    const t=el("text",{{x:0,y:y+22,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
+    [[gam,"var(--c2)","사행성"],[yr,"var(--c1)","청소년이용불가"]].forEach(([pct,col,lab],j)=>{{
+      const yy=y+j*(H+G);
+      const w=Math.max(W*pct/100,2);
+      const rect=el("rect",{{x:L,y:yy,width:w,height:H,rx:2,fill:col}});
+      bindTip(rect,`${{name}} ${{fmt(n)}}건 · ${{lab}} ${{pct}}%`);
+      svg.appendChild(rect);
+      const lb=el("text",{{x:L+w+11,y:yy+13,class:"vlab"}});
+      lb.textContent=`${{lab}} ${{pct}}%`;svg.appendChild(lb);
+    }});
+  }});
+}})();
+
+/* 결론2 — 누가 매기나 */
+(function(){{
+  const svg=document.getElementById("c-rater"),L=160,R=200,W=1000-L-R,H=44,G=28;
+  [["위원회 심의",RATER.com_n,RATER.com_yr,"var(--c1)"],
+   ["사업자 자체 분류",RATER.self_n,RATER.self_yr,"var(--c3)"]].forEach(([name,n,yr,col],i)=>{{
+    const y=24+i*(H+G);
+    const t=el("text",{{x:0,y:y+27,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
+    const w=Math.max(W*n/RATER.self_n,3);
+    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:3,fill:col}});
+    bindTip(rect,`${{name}} · ${{fmt(n)}}건 · 청소년이용불가 ${{yr}}%`);
+    svg.appendChild(rect);
+    const lb=el("text",{{x:L+w+13,y:y+27,class:"vlab"}});
+    lb.textContent=`${{fmt(n)}}건`;svg.appendChild(lb);
+  }});
+  const n=el("text",{{x:L,y:24+2*(H+G)+12,class:"axis"}});
+  n.textContent="막대 길이 = 건수 · 같은 기간 " + RATER.from + " ~ " + RATER.to;
+  svg.appendChild(n);
+}})();
+
+/* 결론3 — 최고 점수 x 등급 */
 (function(){{
   const svg=document.getElementById("c-rule"),L=104,T=52,CW=168,CH=46,G=3;
   GRADES.forEach((g,c)=>{{
@@ -518,74 +536,34 @@ function bindTip(node,text){{
   RULE.forEach(([lv,...cells],rI)=>{{
     const t=el("text",{{x:0,y:T+rI*CH+CH/2+5,class:"rowlab"}});
     t.textContent=lv+"점";svg.appendChild(t);
-    const rowTotal=cells.reduce((a,b)=>a+b,0)||1;
+    const total=cells.reduce((a,b)=>a+b,0)||1;
     cells.forEach((n,c)=>{{
-      const share=n/rowTotal;
-      /* 바탕은 항상 깔고, 그 위에 건수 비중만큼 진하게 덧칠한다.
-         1건과 58,377건이 같은 농도로 보이면 대각선이라는 사실 자체가 가려진다. */
-      const bg=el("rect",{{x:L+c*CW,y:T+rI*CH,width:CW-G,height:CH-G,rx:3,fill:"var(--sunk)"}});
-      svg.appendChild(bg);
+      const share=n/total;
+      svg.appendChild(el("rect",{{x:L+c*CW,y:T+rI*CH,width:CW-G,height:CH-G,rx:3,fill:"var(--sunk)"}}));
       if(n>0){{
         const rect=el("rect",{{x:L+c*CW,y:T+rI*CH,width:CW-G,height:CH-G,rx:3,
           fill:"var(--s5)","fill-opacity":Math.max(share,0.07).toFixed(3)}});
         bindTip(rect,`가장 높은 점수 ${{lv}}점 → ${{GRADES[c]}} · ${{fmt(n)}}건 (그 줄의 ${{(share*100).toFixed(share<1?2:0)}}%)`);
         svg.appendChild(rect);
-        const tx=el("text",{{x:L+c*CW+(CW-G)/2,y:T+rI*CH+CH/2+5,
-          "text-anchor":"middle","font-size":"12.5",
-          fill:share>=0.55?"var(--surface)":"var(--ink2)","font-weight":"500"}});
+        const tx=el("text",{{x:L+c*CW+(CW-G)/2,y:T+rI*CH+CH/2+5,"text-anchor":"middle",
+          "font-size":"12.5",fill:share>=0.55?"var(--surface)":"var(--ink2)","font-weight":"500"}});
         tx.textContent=fmt(n);svg.appendChild(tx);
       }}
     }});
   }});
   const n=el("text",{{x:L,y:T+RULE.length*CH+26,class:"axis"}});
-  n.textContent="가로 = 실제 관람등급 · 세로 = 내용정보 항목 중 가장 높은 점수 · 칠이 진할수록 그 줄에서 차지하는 비중이 크다";
+  n.textContent="가로 = 실제 관람등급 · 세로 = 항목 중 가장 높은 점수 · 칠이 진할수록 그 줄에서 차지하는 비중이 크다";
   svg.appendChild(n);
 }})();
 
-/* 2. 연도별 등급 구성 */
-(function(){{
-  const lg=document.getElementById("lg-grade");
-  GRADES.forEach((g,i)=>{{const s=document.createElement("span");
-    s.innerHTML=`<i class="sw" style="background:var(${{RAMP[i]}})"></i>${{g}}`;lg.appendChild(s);}});
-  const svg=document.getElementById("c-year"),L=120,R=40,W=1000-L-R,H=22,G=5;
-  YEAR.forEach(([y,n,...p],rI)=>{{
-    const yy=8+rI*(H+G);
-    const t=el("text",{{x:0,y:yy+16,class:"rowlab"}});t.textContent=y;svg.appendChild(t);
-    const c=el("text",{{x:L-12,y:yy+16,class:"axis","text-anchor":"end"}});
-    c.textContent=fmt(n);svg.appendChild(c);
-    let x=L;
-    p.forEach((val,i)=>{{
-      if(val<=0)return;
-      const w=W*val/100;
-      const rect=el("rect",{{x:x,y:yy,width:Math.max(w-2,1),height:H,rx:2,fill:`var(${{RAMP[i]}})`}});
-      bindTip(rect,`${{y}}년 · ${{GRADES[i]}} ${{val}}% (약 ${{fmt(Math.round(n*val/100))}}건)`);
-      svg.appendChild(rect);
-      if(val>=11){{
-        const lb=el("text",{{x:x+7,y:yy+15,class:"vlab",fill:i>=3?"var(--surface)":"var(--ink)"}});
-        lb.textContent=val.toFixed(0)+"%";svg.appendChild(lb);
-      }}
-      x+=w;
-    }});
-  }});
-}})();
+/* 결론3 — 신청 등급별 상향률 */
+hbar("c-hope",HOPE.map(([g,n,p])=>({{
+  label:g, v:p, fill:"var(--c1)",
+  right:`${{p}}%   (${{fmt(n)}}건 중)`,
+  tip:`${{g}}로 신청한 ${{fmt(n)}}건 중 ${{p}}%가 위로 조정됨`}})),
+  {{max:30,H:22,G:22,L:120,R:230}});
 
-/* 3. 종류별 */
-(function(){{
-  const svg=document.getElementById("c-kind"),L=110,R=210,W=1000-L-R,H=24,G=10;
-  const max=Math.max(...KIND.map(k=>k[1]));
-  KIND.forEach(([name,n,yr],i)=>{{
-    const y=8+i*(H+G);
-    const t=el("text",{{x:0,y:y+17,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
-    const w=Math.max(W*n/max,2);
-    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:2,fill:"var(--c1)"}});
-    bindTip(rect,`${{name}} · ${{fmt(n)}}건 · 청소년관람불가 ${{yr}}%`);
-    svg.appendChild(rect);
-    const v=el("text",{{x:L+w+12,y:y+17,class:"vlab"}});
-    v.textContent=`${{fmt(n)}}건   청소년관람불가 ${{yr}}%`;svg.appendChild(v);
-  }});
-}})();
-
-/* 4. 종류 x 결정 이유 */
+/* 결론3 — 종류 x 결정 이유 */
 (function(){{
   const svg=document.getElementById("c-heat"),L=110,T=48,
         CW=Math.min(118,(1000-L)/REASONS.length),CH=36,G=3;
@@ -597,8 +575,7 @@ function bindTip(node,text){{
     const t=el("text",{{x:0,y:T+rI*CH+CH/2+5,class:"rowlab"}});t.textContent=kind;svg.appendChild(t);
     vals.forEach((val,c)=>{{
       const step=Math.min(4,Math.floor(val/20));
-      const rect=el("rect",{{x:L+c*CW,y:T+rI*CH,width:CW-G,height:CH-G,rx:2,
-        fill:`var(${{RAMP[step]}})`}});
+      const rect=el("rect",{{x:L+c*CW,y:T+rI*CH,width:CW-G,height:CH-G,rx:2,fill:`var(${{RAMP[step]}})`}});
       bindTip(rect,`${{kind}} · ${{REASONS[c]}} ${{val}}%`);
       svg.appendChild(rect);
       const tx=el("text",{{x:L+c*CW+(CW-G)/2,y:T+rI*CH+CH/2+5,class:"vlab","text-anchor":"middle",
@@ -608,80 +585,6 @@ function bindTip(node,text){{
   }});
   const n=el("text",{{x:L,y:T+HEAT.length*CH+24,class:"axis"}});
   n.textContent="각 종류에서 그 항목이 등급 결정 이유로 지목된 비율";
-  svg.appendChild(n);
-}})();
-
-/* 5. 신청 대비 조정 */
-(function(){{
-  const svg=document.getElementById("c-adj"),W=1000,H=38;
-  const colors=["var(--s2)","var(--c1)","var(--c3)"];
-  let x=0;
-  ADJ.forEach(([name,n,pct],i)=>{{
-    const w=W*pct/100;
-    const rect=el("rect",{{x:x,y:34,width:Math.max(w-2,1),height:H,rx:3,fill:colors[i]}});
-    bindTip(rect,`${{name}} · ${{fmt(n)}}건 · ${{pct}}%`);
-    svg.appendChild(rect);
-    const t=el("text",{{x:x,y:24,class:"vlab"}});
-    t.textContent=`${{name}} ${{pct}}%`;svg.appendChild(t);
-    const c=el("text",{{x:x,y:92,class:"axis"}});c.textContent=fmt(n)+"건";svg.appendChild(c);
-    x+=w;
-  }});
-}})();
-
-/* 6. 게임물 이름표별 */
-(function(){{
-  const svg=document.getElementById("c-solo"),L=100,R=190,W=1000-L-R,H=26,G=12;
-  SOLO.forEach(([name,n,pct],i)=>{{
-    const y=10+i*(H+G);
-    const t=el("text",{{x:0,y:y+18,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
-    const w=Math.max(W*pct/100,2);
-    const step=Math.min(4,Math.floor(pct/22));
-    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:2,fill:`var(${{RAMP[step]}})`}});
-    bindTip(rect,`${{name}}만 붙은 게임물 ${{fmt(n)}}건 중 ${{pct}}%가 청소년이용불가`);
-    svg.appendChild(rect);
-    const v=el("text",{{x:L+w+12,y:y+18,class:"vlab"}});
-    v.textContent=`${{pct}}%   (${{fmt(n)}}건)`;svg.appendChild(v);
-  }});
-  const n=el("text",{{x:L,y:10+SOLO.length*(H+G)+16,class:"axis"}});
-  n.textContent="가로축 = 청소년이용불가 비율 (0~100%)";svg.appendChild(n);
-}})();
-
-/* 7. 매체 비교 */
-(function(){{
-  const svg=document.getElementById("c-cmp"),L=100,R=200,W=1000-L-R,H=19,G=5,ROW=52;
-  const max=Math.max(...CMP.map(c=>Math.max(c[2],c[4])),10);
-  CMP.forEach(([name,kn,kp,gn,gp],i)=>{{
-    const y=14+i*ROW;
-    const t=el("text",{{x:0,y:y+22,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
-    [[kp,kn,"var(--c1)","영상물"],[gp,gn,"var(--c2)","게임물"]].forEach(([pct,n,col,lab],j)=>{{
-      const yy=y+j*(H+G);
-      const w=Math.max(W*pct/max,2);
-      const rect=el("rect",{{x:L,y:yy,width:w,height:H,rx:2,fill:col}});
-      bindTip(rect,`${{lab}} · ${{name}}만 있는 ${{fmt(n)}}건 중 ${{pct}}%`);
-      svg.appendChild(rect);
-      const v=el("text",{{x:L+w+11,y:yy+14,class:"vlab"}});
-      v.textContent=`${{lab}} ${{pct}}%`;svg.appendChild(v);
-    }});
-  }});
-}})();
-
-/* 8. 누가 매기는가 */
-(function(){{
-  const svg=document.getElementById("c-rater"),L=150,R=180,W=1000-L-R,H=42,G=26;
-  const max=RATER.self_n;
-  [["위원회 심의",RATER.com_n,RATER.com_yr,"var(--c1)"],
-   ["사업자 자체 분류",RATER.self_n,RATER.self_yr,"var(--c3)"]].forEach(([name,n,yr,col],i)=>{{
-    const y=22+i*(H+G);
-    const t=el("text",{{x:0,y:y+26,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
-    const w=Math.max(W*n/max,3);
-    const rect=el("rect",{{x:L,y:y,width:w,height:H,rx:3,fill:col}});
-    bindTip(rect,`${{name}} · ${{fmt(n)}}건 · 청소년이용불가 ${{yr}}%`);
-    svg.appendChild(rect);
-    const v=el("text",{{x:L+w+13,y:y+26,class:"vlab"}});
-    v.textContent=`${{fmt(n)}}건`;svg.appendChild(v);
-  }});
-  const n=el("text",{{x:L,y:22+2*(H+G)+14,class:"axis"}});
-  n.textContent="같은 기간 " + RATER.from + " ~ " + RATER.to;
   svg.appendChild(n);
 }})();
 </script>"""
@@ -694,9 +597,11 @@ def main() -> None:
 
     OUT.mkdir(parents=True, exist_ok=True)
     v = compute()
-    print(f"영상물 {v['kmrb_n']:,}건 / 게임물 {v['grac_n']:,}건 / 비교용 {v['rater']['self_n']:,}건")
-    print(f"  최고 점수 규칙 일치율 {v['rule_rate']}%")
-    print(f"  공개 자료 몫 {v['rater']['share']}%")
+    print(f"게임물 {v['g_n']:,}건 (청소년이용불가 {v['g_yr_n']:,}건 · {v['g_yr_pct']}%)")
+    print(f"  청불 중 사행성 보유 {v['compose'][0][2]}%")
+    print(f"  사행성 있음 {v['gam']['has_yr']}% / 없음 {v['gam']['no_yr']}%")
+    print(f"영상물 {v['k_n']:,}건 · 최고 점수 규칙 {v['rule_rate']}%")
+    print(f"공개 심의 몫 {v['rater']['share']}%")
 
     dest = OUT / "final_report.html"
     dest.write_text(render(v), encoding="utf-8")
