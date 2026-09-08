@@ -25,6 +25,10 @@ __pycache__/
 .venv/
 venv/
 
+# 엑셀 산출물 — parquet 에서 export_excel.py 로 언제든 다시 만들 수 있고 용량이 크다
+# (kmrb_video_260907.xlsx 는 49MB). NAS 사본에는 그대로 둔다
+outputs/*.xlsx
+
 # Office 임시 파일
 ~$*.docx
 ~$*.xlsx

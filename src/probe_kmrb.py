@@ -15,7 +15,6 @@ PRD 4.5절의 가정 A-1~A-5를 실제 응답으로 확인하기 위한 스크�
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -23,29 +22,19 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
-from dotenv import load_dotenv
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import apikey  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data" / "raw"
 
-load_dotenv(ROOT / ".env")
-ENDPOINT = os.getenv("KMRB_VIDEO_ENDPOINT", "").strip()
-SERVICE_KEY = os.getenv("DATA_GO_KR_KEY", "").strip()
+ENDPOINT = apikey.get("KMRB_VIDEO_ENDPOINT", prompt="영등위 비디오물 등급분류정보 조회 서비스 엔드포인트 (예: https://apis.data.go.kr/B551008/video_search_v2)")
+SERVICE_KEY = apikey.get("DATA_GO_KR_KEY", prompt="공공데이터포털 일반 인증키(Decoding)")
 
 
 def check_env() -> None:
-    missing = [
-        name
-        for name, value in (
-            ("KMRB_VIDEO_ENDPOINT", ENDPOINT),
-            ("DATA_GO_KR_KEY", SERVICE_KEY),
-        )
-        if not value
-    ]
-    if missing:
-        print("[중단] .env 에 다음 값이 비어 있습니다: " + ", ".join(missing))
-        print(f"       {ROOT / '.env.example'} 를 .env 로 복사한 뒤 채워주세요.")
-        sys.exit(1)
+    pass
 
 
 def mask(text: str) -> str:
