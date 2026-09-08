@@ -122,6 +122,40 @@ def compute() -> dict:
                         round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
     v["platcombo"] = sorted(pc_rows, key=lambda r: -r[3])
 
+    # 사행성이 어디에 몰려 있나 — 장르와 업체
+    gam_only = ga[ga["내용_사행성"] == 1]
+    base_g = ga["genre"].value_counts(normalize=True)
+    genre = []
+    for name, n in gam_only["genre"].value_counts().head(6).items():
+        genre.append([str(name), int(n), round(n / len(gam_only) * 100, 1),
+                      round(float(base_g.get(name, 0)) * 100, 1)])
+    v["gam_genre"] = genre
+    v["gam_n"] = len(gam_only)
+
+    ent = []
+    for name, n in gam_only["entname"].value_counts().head(10).items():
+        tot = int((ga["entname"] == name).sum())
+        if tot < 30:
+            continue
+        ent.append([str(name), int(n), tot, round(n / tot * 100, 1)])
+    v["gam_ent"] = sorted(ent, key=lambda r: -r[3])
+    v["gam_ent_n"] = int(gam_only["entname"].nunique())
+    v["ent_n"] = int(ga["entname"].nunique())
+
+    # 등급취소
+    c = g[g["is_canceled"]]
+    v["cancel"] = {"n": len(c), "pct": round(float(g["is_canceled"].mean()) * 100, 1),
+                   "gam": round(float(c["내용_사행성"].mean()) * 100, 1),
+                   "gam_all": round(float(g["내용_사행성"].mean()) * 100, 1)}
+    cg = []
+    for name, n in c["genre"].value_counts().head(6).items():
+        cg.append([str(name), int(n), round(n / len(c) * 100, 1),
+                   round(float(base_g.get(name, 0)) * 100, 1)])
+    v["cancel_genre"] = cg
+    gap = (pd.to_datetime(c["canceleddate"], errors="coerce")
+           - pd.to_datetime(c["rateddate"], errors="coerce")).dt.days.dropna()
+    v["cancel_gap"] = {"median": int(gap.median()), "within1y": round(float((gap <= 365).mean()) * 100)}
+
     # ── 결론 2. 그 심의망의 크기
     lo, hi = s["rated_date"].min(), s["rated_date"].max()
     same = ga[(ga["rated_date"] >= lo) & (ga["rated_date"] <= hi)]
@@ -366,6 +400,56 @@ footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
     폭력적이라 여겨지는 콘솔(비디오 게임)은 양쪽 다 가장 낮다. 등급을 가르는 것이 폭력이 아니라
     도박성이라는 뜻이다.</figcaption>
   </figure>
+
+  <h3>사행성 게임은 한 장르에 몰려 있다</h3>
+  <p class="col">사행성이 붙은 {v['gam_n']:,}건이 어떤 장르인지 보면, 사실상 한 장르의 이야기다.</p>
+  <figure>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c2)"></i>사행성 게임 중 이 장르의 비중</span>
+      <span><i class="sw" style="background:var(--s2)"></i>전체 게임 중 이 장르의 비중</span>
+    </div>
+    <div class="scroll"><svg id="c-gamgenre" width="1000"
+      height="{50 + len(v['gam_genre']) * 50}" role="img"
+      aria-label="사행성 게임의 장르 구성"></svg></div>
+    <figcaption>사행성 게임의 {v['gam_genre'][0][2]}%가 {v['gam_genre'][0][0]} 한 장르다.
+    전체 게임에서 이 장르가 차지하는 몫은 {v['gam_genre'][0][3]}%에 지나지 않는다.
+    즉 게임 심의에서 청소년이용불가를 만드는 것은 사실상 웹보드·베팅성 보드게임이다.</figcaption>
+  </figure>
+
+  <h3>만드는 곳도 따로 있다</h3>
+  <p class="col">신청사는 모두 {v['ent_n']:,}곳이고 그중 {v['gam_ent_n']:,}곳이 사행성 게임을 냈다.
+  다만 건수로 보면 특별히 한두 곳에 쏠려 있지는 않다. 눈에 띄는 것은 다른 쪽이다.
+  <b>어떤 업체는 자기가 낸 게임이 거의 전부 사행성이다.</b></p>
+  <figure>
+    <div class="scroll"><svg id="c-gament" width="1000"
+      height="{50 + len(v['gam_ent']) * 34}" role="img"
+      aria-label="업체별 자사 게임 중 사행성 비율"></svg></div>
+    <figcaption>막대는 그 업체가 낸 게임 가운데 사행성이 붙은 비율이다(30건 이상 낸 곳만).
+    100%인 곳이 여럿 있다. 웹보드 게임만 만드는 회사가 따로 존재한다는 뜻이며,
+    이는 합법적인 사업 영역이다. 게임 심의가 특정 장르·특정 업체에 집중되는 구조임을 보여준다.</figcaption>
+  </figure>
+
+  <h3>등급을 준 뒤 취소된 {v['cancel']['n']:,}건</h3>
+  <p class="col">등급분류를 받은 뒤 취소된 건이 {v['cancel']['n']:,}건({v['cancel']['pct']}%) 있다.
+  이 건들도 사행성 쪽으로 기울어 있다. 사행성 보유율이 {v['cancel']['gam']}%로 전체
+  {v['cancel']['gam_all']}%의 두 배가 넘는다.</p>
+  <figure>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c3)"></i>취소된 건 중 이 장르의 비중</span>
+      <span><i class="sw" style="background:var(--s2)"></i>전체 게임 중 이 장르의 비중</span>
+    </div>
+    <div class="scroll"><svg id="c-cancel" width="1000"
+      height="{50 + len(v['cancel_genre']) * 50}" role="img"
+      aria-label="등급취소된 게임의 장르 구성"></svg></div>
+    <figcaption>베팅성 보드게임이 {v['cancel_genre'][0][2]}%로 가장 많은 것은 앞의 흐름과 같다.
+    뜻밖인 것은 두 번째다. {v['cancel_genre'][1][0]}이 {v['cancel_genre'][1][2]}%를 차지하는데
+    전체에서는 {v['cancel_genre'][1][3]}%에 지나지 않는다. 등급을 받은 뒤 취소되기까지는
+    중앙값 {v['cancel_gap']['median']}일이 걸렸고, {v['cancel_gap']['within1y']}%가 1년 안에 취소됐다.</figcaption>
+  </figure>
+  <div class="note"><b>취소 사유는 자료에 없다.</b> 게임산업법상 등급취소는 신청 내용과 다르게
+  유통한 경우 등에 이뤄지지만, 사업자가 서비스를 접으며 스스로 반납하는 경우도 취소로 기록될 수
+  있다. 이 자료로는 둘을 가를 수 없으므로 위 수치를 위반 건수로 읽어서는 안 된다.
+  분석에서는 이 건들을 빼되, 어떤 게임이 취소되는지는 따로 볼 거리가 있어 기록해 둔다.</div>
 </section>
 
 <section>
@@ -463,6 +547,13 @@ footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
   "항목이 여러 개 겹칠수록 등급이 올라간다"는 결과를 냈다가 폐기했다. 성인물이 특정 구간에 몰려
   있어 생긴 착시였다.</p>
 
+  <h3>보려다 접은 것 — 줄거리 텍스트</h3>
+  <p class="col">영상물 자료에는 작품 내용을 적는 칸이 있고, 2018년 이후로는 100% 채워져 있다
+  (전체로는 84.6%). 텍스트 분석 재료가 되나 싶어 열어 봤으나 내용이 줄거리가 아니었다.
+  "3매로구성: 1.아름다운만남 2.즐거운만남"처럼 수록 목록을 적어 둔 것이거나
+  "20100909 보완(수신1140)" 같은 행정 메모가 많다. 중앙값이 99자로 짧기도 하다.
+  분석에 쓰기 어렵다고 판단해 접었다.</p>
+
   <h3>단계표기 시기의 예외</h3>
   <p class="col">결론 3의 규칙에서 어긋난 {v['rule_miss']}건은 모두 2017년 5월 이전이다. 그 시기
   ({st_n:,}건)에는 {st_r}%가 규칙대로였고, 표기를 등급 이름으로 바꾼 뒤로는 {gr_r}%다. 표기 방식이
@@ -492,6 +583,9 @@ const RATER={js(v['rater'])};
 const COMBO={js(v['combo'])};
 const COMBONAMES={js(v['combo_names'])};
 const PLATCOMBO={js(v['platcombo'])};
+const GAMGENRE={js(v['gam_genre'])};
+const GAMENT={js(v['gam_ent'])};
+const CANCELGENRE={js(v['cancel_genre'])};
 const RULE={js(v['rule'])};
 const HOPE={js(v['hope'])};
 const REASONS={js(v['reason_names'])};
@@ -616,6 +710,34 @@ hbar("c-combo",COMBO.map(([n,c,p,gam])=>({{
   note.textContent="칸 = 그 플랫폼에서 그 조합을 가진 게임의 청소년이용불가 비율 · 점(·)은 표본 20건 미만";
   svg.appendChild(note);
 }})();
+
+/* 결론1 — 사행성 장르 / 취소 장르 (같은 모양이라 함수로) */
+function pairBars(id,rows,colA,labA,labB){{
+  const svg=document.getElementById(id); if(!svg) return;
+  const L=150,R=210,W=1000-L-R,H=17,G=5,ROW=50;
+  rows.forEach(([name,n,a,b],i)=>{{
+    const y=14+i*ROW;
+    const t=el("text",{{x:0,y:y+22,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
+    [[a,colA,labA],[b,"var(--s2)",labB]].forEach(([pct,col,lab],j)=>{{
+      const yy=y+j*(H+G);
+      const w=Math.max(W*pct/100,2);
+      const rect=el("rect",{{x:L,y:yy,width:w,height:H,rx:2,fill:col}});
+      bindTip(rect,`${{name}} · ${{lab}} ${{pct}}%` + (j===0?` (${{fmt(n)}}건)`:""));
+      svg.appendChild(rect);
+      const lb=el("text",{{x:L+w+11,y:yy+13,class:"vlab"}});
+      lb.textContent=`${{lab}} ${{pct}}%`;svg.appendChild(lb);
+    }});
+  }});
+}}
+pairBars("c-gamgenre",GAMGENRE,"var(--c2)","사행성 중","전체 중");
+pairBars("c-cancel",CANCELGENRE,"var(--c3)","취소 중","전체 중");
+
+/* 결론1 — 업체별 자사 게임 중 사행성 비율 */
+hbar("c-gament",GAMENT.map(([name,n,tot,p])=>({{
+  label:name.length>13?name.slice(0,13)+"…":name, v:p, fill:"var(--c2)",
+  right:`${{p}}%   (${{fmt(tot)}}건 중 ${{fmt(n)}}건)`,
+  tip:`${{name}} · 낸 게임 ${{fmt(tot)}}건 중 ${{fmt(n)}}건(${{p}}%)이 사행성`}})),
+  {{max:100,H:20,G:14,L:150,R:250}});
 
 /* 결론2 — 누가 매기나 */
 (function(){{
