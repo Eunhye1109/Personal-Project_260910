@@ -87,6 +87,41 @@ def compute() -> dict:
                      round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
     v["plat"] = sorted(plat, key=lambda r: -r[2])
 
+    # 조합별 — 선정성·폭력성·사행성 세 가지의 조합만 본다.
+    # 나머지 항목(언어·약물·공포·범죄)은 섞여 있을 수 있다. 세 가지가 등급을 좌우하기 때문이다.
+    def masks(df):
+        S, V, G = df["내용_선정성"], df["내용_폭력성"], df["내용_사행성"]
+        return [("선정성만", (S == 1) & (V == 0) & (G == 0), False),
+                ("폭력성만", (S == 0) & (V == 1) & (G == 0), False),
+                ("선정+폭력", (S == 1) & (V == 1) & (G == 0), False),
+                ("사행성만", (S == 0) & (V == 0) & (G == 1), True),
+                ("선정+사행", (S == 1) & (V == 0) & (G == 1), True),
+                ("사행+폭력", (S == 0) & (V == 1) & (G == 1), True)]
+
+    combo = []
+    for name, m, gam in masks(ga):
+        sub = ga[m]
+        if len(sub) < 20:
+            continue
+        combo.append([name, len(sub), round(float(sub["is_youth_restricted"].mean()) * 100, 1), gam])
+    v["combo"] = sorted(combo, key=lambda r: -r[2])
+    v["combo_names"] = [c[0] for c in v["combo"]]
+
+    pc_rows = []
+    for p, sub in ga.groupby("platform"):
+        if len(sub) < 300:
+            continue
+        cells = []
+        by = {n: (m, gam) for n, m, gam in masks(sub)}
+        for name in v["combo_names"]:
+            m = by[name][0]
+            t = sub[m]
+            cells.append([round(float(t["is_youth_restricted"].mean()) * 100, 1), len(t)]
+                         if len(t) >= 20 else [None, len(t)])
+        pc_rows.append([str(p), len(sub), cells,
+                        round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
+    v["platcombo"] = sorted(pc_rows, key=lambda r: -r[3])
+
     # ── 결론 2. 그 심의망의 크기
     lo, hi = s["rated_date"].min(), s["rated_date"].max()
     same = ga[(ga["rated_date"] >= lo) & (ga["rated_date"] <= hi)]
@@ -146,6 +181,8 @@ def render(v: dict) -> str:
     st_n, st_r = v["rule_nota"].get("단계표기", [0, 0])
     hope12 = next((h for h in v["hope"] if h[0] == "12세"), ["12세", 0, 0])
     adj_total = round(v["adj"]["up"] + v["adj"]["down"], 1)
+    cmb = {c[0]: c[2] for c in v["combo"]}
+    cmb_sv, cmb_s = cmb.get("선정+폭력", 0), cmb.get("선정성만", 0)
 
     return f"""<title>청소년이용불가를 만드는 것</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -291,7 +328,33 @@ footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
     청소년도 이용할 수 있다.</figcaption>
   </figure>
 
-  <h3>플랫폼을 보면 더 분명하다</h3>
+  <h3>항목이 섞였을 때도 사행성이 갈랐다</h3>
+  <p class="col">등급을 좌우하는 세 가지(선정성·폭력성·사행성)의 조합으로 나눠 보았다.
+  나머지 항목이 섞인 경우는 그대로 두었다. 세 가지가 결과를 결정하기 때문이다.</p>
+  <figure>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c2)"></i>사행성이 들어간 조합</span>
+      <span><i class="sw" style="background:var(--s3)"></i>사행성이 없는 조합</span>
+    </div>
+    <div class="scroll"><svg id="c-combo" width="1000" height="{50 + len(v['combo']) * 38}" role="img"
+      aria-label="내용정보 조합별 청소년이용불가 비율"></svg></div>
+    <figcaption>사행성이 들어간 조합 셋이 위쪽에, 없는 조합 셋이 아래쪽에 그대로 갈린다.
+    눈에 띄는 것은 <b>선정+폭력({cmb_sv}%)이 선정성만({cmb_s}%)보다 낮다</b>는 점이다.
+    폭력성이 더해지면 등급이 오히려 내려간다. 폭력성이 붙는 게임이 주로 콘솔·PC 액션물이라
+    성인물과는 다른 부류이기 때문으로 보인다.</figcaption>
+  </figure>
+
+  <h3>플랫폼까지 나눠 보면</h3>
+  <figure>
+    <div class="scroll"><svg id="c-platcombo" width="1000"
+      height="{70 + len(v['platcombo']) * 42}" role="img"
+      aria-label="플랫폼별 내용정보 조합별 청소년이용불가 비율"></svg></div>
+    <figcaption>칸의 값은 그 플랫폼에서 그 조합을 가진 게임의 청소년이용불가 비율이다.
+    표본이 20건 미만인 칸은 비워 두었다. 사행성이 들어간 세 열이 플랫폼을 가리지 않고 진하다.
+    반면 같은 '선정성만'인데도 모바일과 콘솔의 값이 크게 다르다. 마우스를 올리면 건수가 나온다.</figcaption>
+  </figure>
+
+  <h3>사행성 비율과 청소년이용불가 비율은 붙어 다닌다</h3>
   <figure>
     <div class="legend">
       <span><i class="sw" style="background:var(--c2)"></i>사행성이 붙은 비율</span>
@@ -299,9 +362,9 @@ footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
     </div>
     <div class="scroll"><svg id="c-plat" width="1000" height="{50 + len(v['plat']) * 52}" role="img"
       aria-label="플랫폼별 사행성 비율과 청소년이용불가 비율"></svg></div>
-    <figcaption>두 막대가 거의 붙어 다닌다. 웹보드 게임이 많은 온라인 게임은 사행성도
-    청소년이용불가도 가장 높고, 흔히 폭력적이라 여겨지는 콘솔(비디오 게임)은 양쪽 다 가장 낮다.
-    등급을 가르는 것이 폭력이 아니라 도박성이라는 뜻이다.</figcaption>
+    <figcaption>웹보드 게임이 많은 온라인 게임은 사행성도 청소년이용불가도 가장 높고, 흔히
+    폭력적이라 여겨지는 콘솔(비디오 게임)은 양쪽 다 가장 낮다. 등급을 가르는 것이 폭력이 아니라
+    도박성이라는 뜻이다.</figcaption>
   </figure>
 </section>
 
@@ -426,6 +489,9 @@ const GAM={js(v['gam'])};
 const SOLO={js(v['solo'])};
 const PLAT={js(v['plat'])};
 const RATER={js(v['rater'])};
+const COMBO={js(v['combo'])};
+const COMBONAMES={js(v['combo_names'])};
+const PLATCOMBO={js(v['platcombo'])};
 const RULE={js(v['rule'])};
 const HOPE={js(v['hope'])};
 const REASONS={js(v['reason_names'])};
@@ -505,6 +571,50 @@ hbar("c-solo",SOLO.map(([n,c,p])=>({{
       lb.textContent=`${{lab}} ${{pct}}%`;svg.appendChild(lb);
     }});
   }});
+}})();
+
+/* 결론1 — 조합별 */
+hbar("c-combo",COMBO.map(([n,c,p,gam])=>({{
+  label:n, v:p, fill:gam?"var(--c2)":"var(--s3)",
+  right:`${{p}}%   (${{fmt(c)}}건)`,
+  tip:`${{n}} ${{fmt(c)}}건 중 ${{p}}%가 청소년이용불가`}})),
+  {{max:100,H:22,G:16,L:110,R:210}});
+
+/* 결론1 — 플랫폼 x 조합 */
+(function(){{
+  const svg=document.getElementById("c-platcombo"); if(!svg) return;
+  const L=130,T=52,CW=Math.min(128,(1000-L-60)/COMBONAMES.length),CH=38,G=3;
+  COMBONAMES.forEach((n,c)=>{{
+    const t=el("text",{{x:L+c*CW+CW/2,y:T-14,class:"axis","text-anchor":"middle"}});
+    t.textContent=n;svg.appendChild(t);
+  }});
+  const tot=el("text",{{x:L+COMBONAMES.length*CW+30,y:T-14,class:"axis","text-anchor":"middle"}});
+  tot.textContent="전체";svg.appendChild(tot);
+  PLATCOMBO.forEach(([name,n,cells,all],rI)=>{{
+    const y=T+rI*CH;
+    const t=el("text",{{x:0,y:y+CH/2+5,class:"rowlab"}});t.textContent=name;svg.appendChild(t);
+    cells.forEach(([pct,cn],c)=>{{
+      const x=L+c*CW;
+      if(pct===null){{
+        svg.appendChild(el("rect",{{x:x,y:y,width:CW-G,height:CH-G,rx:2,fill:"var(--sunk)"}}));
+        const tx=el("text",{{x:x+(CW-G)/2,y:y+CH/2+5,class:"axis","text-anchor":"middle"}});
+        tx.textContent="·";svg.appendChild(tx);
+        return;
+      }}
+      const step=Math.min(4,Math.floor(pct/20));
+      const rect=el("rect",{{x:x,y:y,width:CW-G,height:CH-G,rx:2,fill:`var(${{RAMP[step]}})`}});
+      bindTip(rect,`${{name}} · ${{COMBONAMES[c]}} ${{fmt(cn)}}건 중 ${{pct}}%가 청소년이용불가`);
+      svg.appendChild(rect);
+      const tx=el("text",{{x:x+(CW-G)/2,y:y+CH/2+5,class:"vlab","text-anchor":"middle",
+        fill:step>=3?"var(--surface)":"var(--ink)"}});
+      tx.textContent=pct.toFixed(0)+"%";svg.appendChild(tx);
+    }});
+    const a=el("text",{{x:L+COMBONAMES.length*CW+30,y:y+CH/2+5,class:"vlab","text-anchor":"middle"}});
+    a.textContent=all.toFixed(0)+"%";svg.appendChild(a);
+  }});
+  const note=el("text",{{x:L,y:T+PLATCOMBO.length*CH+24,class:"axis"}});
+  note.textContent="칸 = 그 플랫폼에서 그 조합을 가진 게임의 청소년이용불가 비율 · 점(·)은 표본 20건 미만";
+  svg.appendChild(note);
 }})();
 
 /* 결론2 — 누가 매기나 */
