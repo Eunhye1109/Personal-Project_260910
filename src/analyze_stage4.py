@@ -394,7 +394,8 @@ def write_html() -> Path:
 <title>4단계 등급 결정 구조 분석</title>
 <style>
  body {{ margin:0; padding:32px; background:#f7f7f5; color:#1f2328;
-        font-family:"맑은 고딕","Malgun Gothic",system-ui,sans-serif; }}
+        font-family:"맑은 고딕","Malgun Gothic",system-ui,sans-serif;
+        word-break:keep-all; overflow-wrap:break-word; }}
  .wrap {{ max-width:1040px; margin:0 auto; background:#fff; padding:36px 40px;
           border:1px solid #e3e3e0; border-radius:8px; }}
  h1 {{ font-size:20px; margin:0 0 4px; color:#1f3864; }}

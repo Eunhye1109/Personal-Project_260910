@@ -37,6 +37,11 @@ body{
   font-family:'IBM Plex Sans KR','Malgun Gothic',system-ui,sans-serif;
   font-weight:300; line-height:1.75; font-size:15px;
   padding:0 20px 100px;
+
+  /* 한글은 기본값이면 단어 중간에서 잘린다(예: '점수를 매 / 긴다').
+     keep-all 로 띄어쓰기에서만 줄을 바꾸고, 아주 긴 낱말만 예외로 쪼갠다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 .wrap{max-width:940px;margin:0 auto}
 h1,h2,h3{font-family:'Gowun Batang','Batang',serif;font-weight:700;text-wrap:balance;line-height:1.3}
