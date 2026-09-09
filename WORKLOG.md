@@ -362,7 +362,7 @@
 내일 이어서 할 것 — 아래 한 줄을 터미널에 붙여 넣어 로그인부터 하면 된다.
 
 ```
-& "$env:LOCALAPPDATA\gh-portablein\gh.exe" auth login --hostname github.com --git-protocol https --web
+& "$env:LOCALAPPDATA\gh-portable\bin\gh.exe" auth login --hostname github.com --git-protocol https --web
 ```
 
 브라우저가 **Eunhye1109** 로 로그인돼 있어야 한다.
