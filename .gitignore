@@ -13,6 +13,12 @@ data/processed/
 # 단, outputs/ 의 작은 참조표(매핑표 등)는 산출물이므로 포함한다
 !outputs/*.csv
 
+# 단, 대시보드가 읽는 슬림 사본은 배포에 필요하므로 포함한다 (약 6MB)
+# Streamlit Cloud 는 저장소에 있는 파일만 읽는다
+!data/dashboard/
+!data/dashboard/*.parquet
+!data/dashboard/*.json
+
 # 체크포인트 · 로그
 checkpoints/
 logs/
