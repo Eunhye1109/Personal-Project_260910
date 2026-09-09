@@ -354,6 +354,127 @@ def rater_content(g: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+# ───────────────────────────────────────── 화면별 인사이트 문장
+#
+# 화면마다 "그래서 이게 무슨 뜻인가"를 두세 줄로 적는다. **고정 문구가 아니라
+# 지금 걸린 필터로 다시 계산한 숫자**로 쓴다. 문구를 박아두면 필터를 바꿨을 때
+# 화면의 그래프와 설명이 서로 다른 말을 하게 된다.
+
+def _n(x) -> str:
+    return f"{int(x):,}"
+
+
+def insight_rule(df: pd.DataFrame) -> list[str]:
+    m = rule_match(df)
+    if m.empty:
+        return []
+    tot = m[m["표기 체계"] == "전체"].iloc[0]
+    out = [f"내용정보 7개 항목의 **최고값이 곧 관람등급**이다. "
+           f"{_n(tot['건수'])}건 중 {_n(tot['건수'] * tot['일치율'])}건이 이 규칙을 따른다"
+           f"(**{tot['일치율']:.2%}**). 설명하는 관계가 아니라 같은 값이라는 뜻이다."]
+    row = m[m["표기 체계"] == "등급표기"]
+    if len(row):
+        r = row.iloc[0]
+        miss = int(round(r["건수"] * (1 - r["일치율"])))
+        out.append(f"표기가 `1~5단계` 에서 `전체관람가~제한상영가` 로 바뀐 2017-05 이후 구간 "
+                   f"{_n(r['건수'])}건에서는 어긋난 건이 **{miss}건**이다. "
+                   f"표기가 바뀐 시점과 규칙이 완전해진 시점이 같다.")
+    ex = rule_exceptions(df)
+    if len(ex):
+        top = ex.iloc[0]
+        out.append(f"어긋나는 건은 {_n(ex['건수'].sum())}건뿐이고, 가장 흔한 형태는 "
+                   f"최고값이 {top.iloc[0]}인데 {top.iloc[1]}로 결정된 {_n(top['건수'])}건이다.")
+    out.append("**그래서 내용정보로 등급을 예측하는 분석은 동어반복이다.** 회귀를 돌리면 AUC 1.000 이 "
+               "나오는데 모형이 좋아서가 아니라 같은 값을 두 번 쓴 것이다. "
+               "이 프로젝트가 볼 것은 3·4번 화면에 있다.")
+    return out
+
+
+def insight_reason(df: pd.DataFrame) -> list[str]:
+    cov = reason_coverage(df)
+    freq = reason_freq(df)
+    if freq.empty:
+        return []
+    top = freq.iloc[0]
+    out = [f"등급이 최고값이라면 남는 질문은 **그 최고값을 무엇이 차지하는가**다. "
+           f"가장 자주 등급을 결정한 항목은 **{top['항목']}**({top['비율']:.0%})이다."]
+    tab = reason_by_kind(df)
+    if len(tab):
+        picks = [f"{k} {tab.loc[k].idxmax()} {tab.loc[k].max():.0%}"
+                 for k in tab.index[:4]]
+        out.append("종별로 뚜렷하게 갈린다 — " + " · ".join(picks) + ". "
+                   "최고값 규칙에서 자동으로 따라 나오는 결과가 아니라 콘텐츠 성격의 차이다.")
+    out.append(f"다만 이 필드는 {cov['기록건수']:,}건({cov['기록률']:.0%})에만 채워져 있고 "
+               f"{cov['시작']}~{cov['끝']} 구간에 몰려 있다. **전 기간으로 일반화하면 안 된다.**")
+    return out
+
+
+def insight_adjust(df: pd.DataFrame) -> list[str]:
+    s = adjust_summary(df)
+    if s.empty:
+        return []
+    up = s[s["구분"] == "상향 조정"].iloc[0]
+    dn = s[s["구분"] == "하향 조정"].iloc[0]
+    out = [f"신청등급과 결정등급이 갈리는 건은 **{up['비율'] + dn['비율']:.1%}**"
+           f"(상향 {up['비율']:.1%} · 하향 {dn['비율']:.1%})다. "
+           f"내용정보와 결정등급은 같은 값이라 서로를 설명하지 못하지만, "
+           f"**신청등급은 신청사가 스스로 매긴 값이라 여기서만 판단이 드러난다.**"]
+    bh = adjust_by_hope(df)
+    if len(bh):
+        r = bh.loc[bh["상향"].idxmax()]
+        out.append(f"상향이 가장 잦은 것은 **{r['신청등급']}로 신청한 건**({r['상향']:.1%}, "
+                   f"{_n(r['건수'])}건)이다. 낮게 신청할수록 올라간다.")
+    bk = adjust_by_kind(df)
+    if len(bk):
+        flip = bk[bk["하향"] > bk["상향"]]
+        if len(flip):
+            names = " · ".join(f"{r['종별']}(하향 {r['하향']:.1%} > 상향 {r['상향']:.1%})"
+                               for _, r in flip.iterrows())
+            out.append(f"하향이 상향보다 많은 종별은 {names} 뿐이다.")
+    return out
+
+
+def insight_media(both: pd.DataFrame, cc: pd.DataFrame, threshold: int) -> list[str]:
+    if cc.empty:
+        return []
+    harsher = int((cc["차이"] > 0).sum())
+    out = [f"보유 조합이 완전히 같은 건끼리 비교하면, 비교 가능한 **{len(cc)}개 조합 중 "
+           f"{harsher}개에서 게임물의 청소년 이용 제한 비율이 더 높다**"
+           f"(평균 {cc['차이'].mean() * 100:+.1f}%p)."]
+    top = cc.iloc[0]
+    out.append(f"가장 크게 벌어지는 것은 **{top['조합']}** — 영상물 {top['영상물']:.1%} 대 "
+               f"게임물 {top['게임물']:.1%}({top['차이'] * 100:+.1f}%p)다.")
+    solo = solo_compare(both)
+    if len(solo):
+        out.append("항목 하나만 가진 건으로 좁혀도 방향이 같다 — "
+                   + " · ".join(f"{r['항목']} {r['영상물']:.1%}→{r['게임물']:.1%}"
+                                for _, r in solo.iterrows()) + ".")
+    if threshold == 4:
+        out.append("**단 지금 고른 4단계 기준으로는 이 비교가 성립하지 않는다.** 영상물은 4단계가 "
+                   "곧 청소년관람불가라 이진화하면 정의상 100%가 된다.")
+    else:
+        out.append("**두 매체는 등급을 정하는 방식 자체가 다르다.** 영상물은 수준(최고값)으로 정하고, "
+                   "게임물은 종류로 정한다 — 사행성이 붙으면 그것 하나로 청소년이용불가가 된다.")
+    return out
+
+
+def insight_rater(g: pd.DataFrame, s: pd.DataFrame) -> list[str]:
+    vol = rater_volume(g, s)
+    n_a, n_s = int(vol.loc[0, "건수"]), int(vol.loc[1, "건수"])
+    same, lo, hi = rater_period(g, s)
+    out = [f"같은 기간({lo:%Y-%m-%d}~{hi:%Y-%m-%d})에 위원회가 {_n(n_a)}건을 심의하는 동안 "
+           f"자체등급분류로 {_n(n_s)}건이 나왔다. **약 {n_s / n_a:,.0f}배**이고, "
+           f"Open API 로 공개되는 것은 게임물 등급분류의 **{n_a / (n_a + n_s):.2%}**뿐이다."]
+    out.append(f"19년치 위원회 물량({_n(len(g))}건)보다 7주치 자체등급분류가 더 많다. "
+               f"이 프로젝트의 게임물 분석은 그 {n_a / (n_a + n_s):.2%} 위에 서 있다.")
+    gam_a = float(same["내용_사행성"].mean()) if len(same) else float("nan")
+    gam_s = float(s["내용_사행성"].mean())
+    out.append(f"**다만 이 차이를 심의 엄격도로 읽으면 안 된다.** 사행성 보유율이 위원회 "
+               f"{gam_a:.1%} 대 자체등급분류 {gam_s:.2%}로, 애초에 다른 게임이 온다. "
+               f"사행성은 단독으로도 청소년이용불가율이 97.1%라 등급 분포 차이의 상당 부분이 여기서 온다.")
+    return out
+
+
 # ───────────────────────────────────────── 자가 점검
 def main() -> None:
     try:

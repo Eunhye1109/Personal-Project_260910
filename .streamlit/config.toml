@@ -1,0 +1,17 @@
+# 화면 색. app.py 의 그래프 팔레트와 같은 값을 쓴다.
+# 배포(Streamlit Cloud)에서도 이 파일이 그대로 적용되므로, 그래프 바탕과 페이지
+# 바탕이 어긋나 보이는 일이 없다.
+
+[theme]
+base = "light"
+primaryColor = "#2a78d6"          # 링크·선택 표시 (그래프 1번 색과 같음)
+backgroundColor = "#fcfcfb"       # 그래프 바탕과 같은 색
+secondaryBackgroundColor = "#f2f1ec"
+textColor = "#0b0b0b"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
