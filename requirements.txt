@@ -1,11 +1,21 @@
-# 배포 환경을 로컬 검증 환경과 같게 고정한다.
-# 고정하지 않으면 Streamlit Cloud 가 최신 pandas(3.x)를 깔고, 그쪽은
-# astype(str) 이 결측을 문자열 "nan" 으로 바꾸지 않고 NA 로 남긴다.
-# 이 코드는 전반에서 그 변환에 기대고 있어 화면이 TypeError 로 죽는다.
+# 배포 환경(Streamlit Cloud)은 Python 3.14 이고, 버전을 고정하지 않으면
+# pandas 3.x 가 깔린다. pandas 3 은 astype(str) 이 결측을 문자열 "nan" 으로
+# 바꾸지 않고 NA 로 남기는데, 이 코드는 전반에서 그 변환에 기대고 있어
+# 화면이 TypeError 로 죽는다. 그래서 검증한 pandas 를 고정한다.
 pandas==2.3.3
 numpy==2.3.5
-pyarrow==21.0.0
-streamlit==1.51.0
+
+# ※ pyarrow 는 버전을 박지 말 것.
+#    21.0.0 은 Python 3.14 휠이 없어 소스 빌드로 넘어가는데 빌드 서버에
+#    cmake 가 없어 설치가 통째로 실패한다(260910에 실제로 겪음).
+#    Streamlit Cloud 는 25.x 를 세그폴트 이슈로 24 로 되돌리므로 상한만 준다.
+pyarrow<25
+
+# streamlit 도 고정하지 않는다. 배포 환경이 자기 버전을 미리 깔아 두고,
+# 굳이 내리면 함께 깔린 altair 등과 어긋난다.
+streamlit>=1.50
 plotly==6.3.0
-requests==2.34.2
+
+# 수집 스크립트용(화면에서는 안 쓴다)
+requests
 python-dotenv
