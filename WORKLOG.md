@@ -347,25 +347,47 @@
 
 ---
 
+## 20260910 - 최은혜
+
+주제: 게임·영상물 등급분류 공공데이터 기반 청소년 이용 부적합 콘텐츠 특성 분석 및 시각화
+
+진행 현황:
+- **GitHub 비공개 저장소 생성·전체 히스토리 푸시 완료** —
+  `guccehchoi-commits/gucc_rating_analysis` (private), **커밋 26개 전량**. squash 없이 그대로 올렸다
+  - `data/dashboard/` 슬림 사본 4개 파일도 원격에 정상 반영(배포에 필요)
+- **계정이 바뀌었다 — Eunhye1109 가 아니라 `guccehchoi-commits` 다**
+  - `gh auth login` 은 브라우저 인증까지 갔으나 **토큰이 저장되지 않았다.**
+    `%APPDATA%\GitHub CLI\` 도 `~/.config/gh` 도 만들어지지 않았다
+  - 대신 **Windows 자격증명에 유효한 토큰이 이미 있었다.** GitHub API `/user` 로 확인하니
+    `guccehchoi-commits`. 이대로 `git push` 하면 gh 로그인과 무관하게 이 계정으로 나간다
+  - 사용자 결정으로 그 계정을 그대로 쓰기로 했다. **09-09 에 적어둔 Eunhye1109 계획은 폐기**
+- 푸시 전 인증키 재확인 — 이력의 `.env` 류는 `.env.example`(빈 템플릿)과 `src/apikey.py` 뿐,
+  추적 파일에 `serviceKey` 실값 노출 0건
+- **앱 구동 확인** — `AppTest` 로 저장소 파일만 놓고 실행. 예외 0건, 여섯 화면 모두 렌더링.
+  Streamlit Cloud 는 저장소 파일만 읽으므로 배포 전에 이 조건으로 확인해야 한다
+
+이슈:
+- Streamlit Cloud 배포가 남았다. share.streamlit.io 에서 GitHub 연결이 한 번 더 필요하고,
+  **비공개 저장소라 저장소 접근 권한을 따로 승인해야 한다**
+- 리포트에 붙일 대시보드 URL 은 배포 후에야 정해진다
+
 ## 다음 작업 (예정)
 
 | 순위 | 작업 | 완료 기준 |
 |---|---|---|
 | 1 | ~~강사 회신 자료 갱신~~ **완료(09-08)** | 완료 |
 | 2 | ~~Streamlit 대시보드 6개 화면 만들기~~ **완료(09-09)** — `app.py` | 완료 |
-| 3 | **GitHub 비공개 저장소 푸시** — 로그인 후 저장소 생성·히스토리 24개 전체 | 원격에 master 반영 |
+| 3 | ~~GitHub 비공개 저장소 푸시~~ **완료(09-10)** — `guccehchoi-commits/gucc_rating_analysis`, 커밋 26개 | 완료 |
 | 4 | **Streamlit Cloud 배포** | 공개 URL 동작 |
 | 5 | 인사이트 리포트 — `final_report.html` 에 대시보드 URL 연결, 제출 형태 결정 | 리포트 완성 |
 
 0~5단계는 두 매체 모두 완료. 남은 것은 배포와 리포트다.
 
-내일 이어서 할 것 — 아래 한 줄을 터미널에 붙여 넣어 로그인부터 하면 된다.
+이어서 할 것 — **share.streamlit.io 에서 배포**. 저장소는 이미 올라가 있다.
 
-```
-& "$env:LOCALAPPDATA\gh-portable\bin\gh.exe" auth login --hostname github.com --git-protocol https --web
-```
-
-브라우저가 **Eunhye1109** 로 로그인돼 있어야 한다.
+- 저장소 `guccehchoi-commits/gucc_rating_analysis` · 브랜치 `master` · 파일 `app.py`
+- **비공개 저장소라 Streamlit 에 저장소 접근 권한을 따로 승인해야 한다**
+- 배포되면 URL 을 `final_report.html` 에 연결한다
 
 ~~0단계 API 응답 필드 검증~~ 영등위 완료(09-02) / 게임위 완료(09-07 저녁).
 ~~PRD v1.2 갱신~~ 완료(09-07). ~~PRD v1.3 갱신~~ 완료(09-07).
