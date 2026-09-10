@@ -1,6 +1,11 @@
-requests
+# 배포 환경을 로컬 검증 환경과 같게 고정한다.
+# 고정하지 않으면 Streamlit Cloud 가 최신 pandas(3.x)를 깔고, 그쪽은
+# astype(str) 이 결측을 문자열 "nan" 으로 바꾸지 않고 NA 로 남긴다.
+# 이 코드는 전반에서 그 변환에 기대고 있어 화면이 TypeError 로 죽는다.
+pandas==2.3.3
+numpy==2.3.5
+pyarrow==21.0.0
+streamlit==1.51.0
+plotly==6.3.0
+requests==2.34.2
 python-dotenv
-pandas
-pyarrow
-streamlit>=1.50
-plotly

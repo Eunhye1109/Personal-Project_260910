@@ -166,9 +166,9 @@ yr_hi = int(max(kmrb["rt_year"].max(), grac["rated_year"].max()))
 years = st.sidebar.slider("기간 (등급분류 연도)", yr_lo, yr_hi, (yr_lo, yr_hi))
 
 kinds = st.sidebar.multiselect(
-    "영상물 종별", sorted(kmrb["kindName"].astype(str).unique()), help="비우면 전체")
+    "영상물 종별", sorted(kmrb["kindName"].dropna().astype(str).unique()), help="비우면 전체")
 platforms = st.sidebar.multiselect(
-    "게임물 플랫폼", sorted(grac["platform"].astype(str).unique()), help="비우면 전체")
+    "게임물 플랫폼", sorted(grac["platform"].dropna().astype(str).unique()), help="비우면 전체")
 drop_adult = st.sidebar.checkbox(
     "성인물 제외", value=False,
     help="성인물은 내용정보와 무관하게 사실상 전건 청소년관람불가라 다른 종별을 가린다 (PRD 5.3 함정3)")
