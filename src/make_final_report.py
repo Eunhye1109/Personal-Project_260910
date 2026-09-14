@@ -589,13 +589,15 @@ table.deliv .dim{{color:var(--muted);font-size:12.5px}}
     <tr><td><b>청소년 이용 제한 콘텐츠 주요 특성</b></td>
       <td><a href="youth_report.html">분석 결과</a></td>
       <td class="mono">src/analyze_youth.py</td></tr>
-    <tr><td><b>인터랙티브 대시보드</b><br><span class="dim">Streamlit · Plotly 6화면</span></td>
-      <td><span class="mono">streamlit run app.py</span></td>
+    <tr><td><b>인터랙티브 대시보드</b><br><span class="dim">Streamlit · Plotly 6화면 · 조건을 바꿔가며 직접 본다</span></td>
+      <td><a href="https://gucc-rating-analysis-260910.streamlit.app/">gucc-rating-analysis-260910.streamlit.app</a></td>
       <td class="mono">app.py · src/dashboard_calc.py</td></tr>
     <tr><td><b>주요 분석 인사이트 리포트</b><br><span class="dim">이 문서</span></td>
       <td><span class="mono">final_report.html</span></td>
       <td class="mono">src/make_final_report.py</td></tr>
   </table>
+  <p class="col">대시보드는 한동안 쓰지 않으면 잠들어 있다가 깨어난다. 처음 열 때 화면이 비어 보이면
+  잠시 기다리면 된다. 발표 직전에는 미리 한 번 열어 깨워두는 편이 낫다.</p>
   <p class="col">곁가지로 매체 간 판정 차이(<a href="compare_media_report.html">compare_media</a>),
   누가 매기는가(<a href="compare_rater_report.html">compare_rater</a>), 등급과 내용정보의 관계
   (<a href="stage4_report.html">stage4</a>)를 따로 남겼다. 본문의 결론은 이 셋에서 나왔다.</p>
