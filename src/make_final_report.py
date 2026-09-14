@@ -309,6 +309,10 @@ svg text{{font-family:'IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular
 [data-tip]:focus-visible{{outline:2px solid var(--c1);outline-offset:2px}}
 @media (prefers-reduced-motion:reduce){{*{{transition:none!important}}}}
 footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
+table.deliv{{border-collapse:collapse;width:100%;font-size:14px;margin:18px 0 6px}}
+table.deliv th,table.deliv td{{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}}
+table.deliv th{{background:var(--sunk);font-weight:600;font-size:13px}}
+table.deliv .dim{{color:var(--muted);font-size:12.5px}}
 </style>
 <div class="wrap">
 
@@ -564,6 +568,37 @@ footer{{padding:52px 0 0;color:var(--muted);font-size:13.5px;max-width:720px}}
   <p class="col">결론 3의 규칙에서 어긋난 {v['rule_miss']}건은 모두 2017년 5월 이전이다. 그 시기
   ({st_n:,}건)에는 {st_r}%가 규칙대로였고, 표기를 등급 이름으로 바꾼 뒤로는 {gr_r}%다. 표기 방식이
   바뀐 시점과 규칙이 완전해진 시점이 겹친다.</p>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">산출물</div>
+    <h2>이 분석이 남긴 것</h2>
+  </div>
+  <p class="col">다섯 가지다. 모두 원본이 갱신되면 스크립트로 다시 만들 수 있다.</p>
+  <table class="deliv">
+    <tr><th>산출물</th><th>파일</th><th>만드는 스크립트</th></tr>
+    <tr><td><b>통합 분석 Dataset</b><br><span class="dim">게임물·영상물 240,290건을 한 표로.
+      이름이 같은 내용정보 4개만 같은 칸에 넣었다</span></td>
+      <td><a href="integrated_dataset_dictionary.html">데이터 사전</a> ·
+      <span class="mono">integrated_ratings_260914.csv</span></td>
+      <td class="mono">src/make_integrated.py</td></tr>
+    <tr><td><b>연령등급 및 내용정보 EDA</b></td>
+      <td><a href="eda_report.html">영상물</a> · <a href="eda_grac_report.html">게임물</a></td>
+      <td class="mono">src/make_eda_report.py · src/eda_grac.py</td></tr>
+    <tr><td><b>청소년 이용 제한 콘텐츠 주요 특성</b></td>
+      <td><a href="youth_report.html">분석 결과</a></td>
+      <td class="mono">src/analyze_youth.py</td></tr>
+    <tr><td><b>인터랙티브 대시보드</b><br><span class="dim">Streamlit · Plotly 6화면</span></td>
+      <td><span class="mono">streamlit run app.py</span></td>
+      <td class="mono">app.py · src/dashboard_calc.py</td></tr>
+    <tr><td><b>주요 분석 인사이트 리포트</b><br><span class="dim">이 문서</span></td>
+      <td><span class="mono">final_report.html</span></td>
+      <td class="mono">src/make_final_report.py</td></tr>
+  </table>
+  <p class="col">곁가지로 매체 간 판정 차이(<a href="compare_media_report.html">compare_media</a>),
+  누가 매기는가(<a href="compare_rater_report.html">compare_rater</a>), 등급과 내용정보의 관계
+  (<a href="stage4_report.html">stage4</a>)를 따로 남겼다. 본문의 결론은 이 셋에서 나왔다.</p>
 </section>
 
 <footer>

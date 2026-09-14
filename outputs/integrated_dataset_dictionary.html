@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>통합 분석 Dataset 데이터 사전</title>
+<style>
+ body { margin:0; padding:32px; background:#f7f7f5; color:#1f2328;
+        font-family:"맑은 고딕","Malgun Gothic",system-ui,sans-serif;
+        word-break:keep-all; overflow-wrap:break-word; }
+ .wrap { max-width:1040px; margin:0 auto; background:#fff; padding:36px 40px;
+          border:1px solid #e3e3e0; border-radius:8px; }
+ h1 { font-size:20px; margin:0 0 4px; color:#1f3864; }
+ h2 { font-size:15px; margin:28px 0 10px; color:#1f3864; }
+ .sub { color:#6b7280; font-size:13px; margin-bottom:20px; }
+ .key { background:#fff4e0; border:1px solid #f0d9a8; border-radius:6px;
+         padding:14px 18px; font-size:14px; margin-bottom:24px; line-height:1.7; }
+ table { border-collapse:collapse; width:100%; font-size:13px; }
+ th,td { border:1px solid #e6e6e3; padding:7px 10px; text-align:left; vertical-align:top; }
+ th { background:#f4f4f2; }
+ td.c { font-family:Consolas,monospace; white-space:nowrap; }
+ td.t { color:#6b7280; font-family:Consolas,monospace; white-space:nowrap; }
+</style></head><body><div class="wrap">
+<h1>게임·영상물 등급분류 통합 분석 Dataset — 데이터 사전</h1>
+<div class="sub">240,290행 · 35열 · 2007~2026 · 생성 2026-09-14 12:36</div>
+<div class="key"><b>세 갈래를 한 표로 붙였다.</b> 게임물 위원회분류 29,417건,
+게임물 자체등급분류 76,409건, 영상물 134,464건.
+<b>이름이 같은 내용정보 4개(선정성·폭력성·공포·약물)만 같은 칸에 넣었고</b>, 나머지는 각 매체의
+칸에 그대로 뒀다. 영상물의 1~5단계는 3단계 이상을 보유로 본 이진값과 원 단계값을 함께 싣는다.
+거를 건은 지우지 않고 <code>비교표본</code> 칸에 표시만 했다 — 무엇을 거를지는 분석마다 다르기 때문이다.
+그 칸이 참인 건은 154,328건이다.</div>
+<h2>열 정의</h2>
+<table><tr><th>열</th><th>형</th><th>정의</th></tr><tr><td class=c>매체</td><td class=t>object</td><td>게임물 / 영상물</td></tr><tr><td class=c>분류경로</td><td class=t>object</td><td>위원회분류 / 자체등급분류</td></tr><tr><td class=c>분류기관</td><td class=t>object</td><td>게임물관리위원회·게임콘텐츠등급분류위원회·영상물등급위원회 또는 자체등급분류 사업자</td></tr><tr><td class=c>분류번호</td><td class=t>object</td><td>기관이 부여한 등급분류 번호</td></tr><tr><td class=c>제목</td><td class=t>object</td><td>게임물명 / 비디오물 제목(useTitle)</td></tr><tr><td class=c>구분</td><td class=t>object</td><td>게임물=플랫폼, 영상물=종별(kindName), 자체등급분류=고정값</td></tr><tr><td class=c>장르</td><td class=t>object</td><td>게임물=장르, 영상물=이용매체·목적(rightMediPurpName)</td></tr><tr><td class=c>등급명</td><td class=t>object</td><td>기관 표기 그대로의 등급</td></tr><tr><td class=c>등급연령</td><td class=t>Float64</td><td>등급을 이용 가능 연령(0/12/15/18)으로 환산</td></tr><tr><td class=c>청소년이용제한</td><td class=t>boolean</td><td>게임물 청소년이용불가 / 영상물 청소년관람불가·제한관람가</td></tr><tr><td class=c>분류일자</td><td class=t>datetime64[ns]</td><td>등급분류 결정일</td></tr><tr><td class=c>분류연도</td><td class=t>Int64</td><td>분류일자의 연</td></tr><tr><td class=c>분류월</td><td class=t>object</td><td>분류일자의 연-월</td></tr><tr><td class=c>내용_선정성</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_폭력성</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_공포</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_약물</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_언어</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측</td></tr><tr><td class=c>내용_범죄</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측</td></tr><tr><td class=c>내용_사행성</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측</td></tr><tr><td class=c>내용_주제</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_대사</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>내용_모방위험</td><td class=t>Int64</td><td>보유=1 / 미보유=0 / 해당 매체에 없는 항목=결측 (영상물은 3단계 이상을 보유로 본 값)</td></tr><tr><td class=c>단계_주제</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_선정성</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_폭력성</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_대사</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_공포</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_약물</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>단계_모방위험</td><td class=t>Int64</td><td>영상물 원 단계값 1~5 (게임물은 결측 — 수준이라는 개념이 없다)</td></tr><tr><td class=c>항목수</td><td class=t>Int64</td><td>보유한 내용정보 항목 수(해당 매체에 있는 항목 기준)</td></tr><tr><td class=c>비교대상밖_보유</td><td class=t>bool</td><td>공통 4항목 밖의 항목(게임=언어·범죄·사행성 / 영상=주제·대사·모방위험) 보유 여부</td></tr><tr><td class=c>비교표본</td><td class=t>bool</td><td>매체 간 비교에 쓸 수 있는 건인지 — 비교대상밖·등급취소·성인물·등급없음 제외</td></tr><tr><td class=c>등급취소</td><td class=t>boolean</td><td>게임물 등급취소 여부</td></tr><tr><td class=c>원본</td><td class=t>object</td><td>이 행이 나온 정제본 파일명</td></tr></table>
+<h2>파일</h2>
+<table><tr><th>산출물</th><th>경로</th></tr>
+<tr><td>통합본 (분석용)</td><td class=c>data\processed\integrated_ratings_260914.parquet</td></tr>
+<tr><td>통합본 (열람용)</td><td class=c>outputs\integrated_ratings_260914.csv</td></tr>
+<tr><td>생성 스크립트</td><td class=c>src\make_integrated.py</td></tr></table>
+</div></body></html>
