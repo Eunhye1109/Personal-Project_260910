@@ -31,7 +31,10 @@ from pptx.util import Emu, Inches, Pt                              # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
 FIG = ROOT / "docs" / "figs_ppt"
-DEST = ROOT / "docs" / "[BI 분석가 과정] 발표자료_260914_최은혜.pptx"
+# ⚠ 손으로 다듬은 발표본은 "[BI 분석가 과정] 발표자료_260914_최은혜.pptx" 이며 이 스크립트가
+#   덮어쓰지 않도록 출력 파일명을 분리해 둔다. 글꼴·배색·배치를 손본 결과가 들어 있어
+#   다시 만들면 그 작업이 사라진다.
+DEST = ROOT / "docs" / "[BI 분석가 과정] 발표자료_260914_최은혜_자동생성본.pptx"
 URL = "https://rating-analysis-260910.streamlit.app/"
 
 # 화면·리포트와 같은 색 규칙
