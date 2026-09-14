@@ -604,7 +604,7 @@ table.deliv .dim{{color:var(--muted);font-size:12.5px}}
       <td class="mono">src/analyze_youth.py</td></tr>
     <tr><td><b>인터랙티브 대시보드</b><br><span class="dim">Streamlit · Plotly 6개 화면 · 조건을
       변경하며 직접 조회 가능</span></td>
-      <td><a href="https://gucc-rating-analysis-260910.streamlit.app/">gucc-rating-analysis-260910.streamlit.app</a></td>
+      <td><a href="https://rating-analysis-260910.streamlit.app/">rating-analysis-260910.streamlit.app</a></td>
       <td class="mono">app.py · src/dashboard_calc.py</td></tr>
     <tr><td><b>주요 분석 인사이트 리포트</b><br><span class="dim">본 문서</span></td>
       <td><span class="mono">final_report.html</span></td>

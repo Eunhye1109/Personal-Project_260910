@@ -383,7 +383,13 @@ def build():
            ["10", "R-13(무료 요금제 슬립) 신설",
             "실행: 배포 후 확인된 제약"],
            ["전 문서", "문체를 공적 문어체로 통일. 대시보드 화면 문구와 리포트 5종도 동일 기준으로 정리",
-            "결정: 대외 제출 문서의 표기 기준에 맞춤"]],
+            "결정: 대외 제출 문서의 표기 기준에 맞춤"],
+           ["전 문서", "줄표(—)를 걷어내고 구분은 쌍점으로 통일",
+            "결정: 표기 통일"],
+           ["전 문서", "폴더명·설정에 남아 있던 회사 약칭을 제거하고 배포 주소를 "
+                     "rating-analysis-260910 으로 변경",
+            "결정: 개인 프로젝트이므로 소속이 드러나지 않게 함"],
+           ["8", "산출물에 특강 발표자료(O-10) 추가", "실행: docs/make_ppt.py"]],
           widths=[1.2, 8.0, 6.8])
 
     # 1
@@ -420,7 +426,7 @@ def build():
            ["G3", "매체 간 판정 차이 정량화", "동일 내용 프로필 기준 매체별 등급 분포 차이 제시"],
            ["G4", "대시보드 배포",
             "6개 화면 정상 동작, 공개 URL 접근 가능. 달성 "
-            "(https://gucc-rating-analysis-260910.streamlit.app/)"],
+            "(https://rating-analysis-260910.streamlit.app/)"],
            ["공통", "분석 리포트", "주요 인사이트 및 방법론·한계 명시"]],
           widths=[1.6, 5.0, 9.4])
 
@@ -924,7 +930,7 @@ def build():
            ["N-4", "필터 조건에 해당하는 데이터가 없을 경우 빈 화면 대신 안내 문구를 표시한다."],
            ["N-5", "표본 수가 통계적으로 불충분한 구간은 화면상에 별도 표기한다."],
            ["N-6", "Streamlit Cloud에 배포하여 별도 설치 없이 URL로 접근 가능하도록 한다. "
-                   "달성: https://gucc-rating-analysis-260910.streamlit.app/ (2026-09-14 확인)"]],
+                   "달성: https://rating-analysis-260910.streamlit.app/ (2026-09-14 확인)"]],
           widths=[1.6, 14.4])
 
     # 7
@@ -962,12 +968,15 @@ def build():
            ["O-4", "청소년 이용 제한 콘텐츠 주요 특성 분석 결과",
             "outputs/youth_report.html (생성 src/analyze_youth.py)"],
            ["O-5", "Streamlit 인터랙티브 대시보드: 6개 화면",
-            "https://gucc-rating-analysis-260910.streamlit.app/ (app.py · src/dashboard_calc.py)"],
+            "https://rating-analysis-260910.streamlit.app/ (app.py · src/dashboard_calc.py)"],
            ["O-6", "주요 분석 인사이트 리포트", "outputs/final_report.html"],
            ["O-7", "분류 주체별 비교: 위원회 심의 대 사업자 자체등급분류",
             "outputs/compare_rater_report.html"],
            ["O-8", "매체 간 판정 차이 비교", "outputs/compare_media_report.html"],
-           ["O-9", "등급과 내용정보의 관계 (4단계 분석)", "outputs/stage4_report.html"]],
+           ["O-9", "등급과 내용정보의 관계 (4단계 분석)", "outputs/stage4_report.html"],
+           ["O-10", "특강 발표자료 및 발표 노트 (18장)",
+            "docs/[BI 분석가 과정] 발표자료_260914_최은혜.pptx · 발표노트_260914_최은혜.docx "
+            "(생성 docs/make_ppt.py)"]],
           widths=[1.4, 6.6, 8.0])
     para(doc, "O-2 의 게임물 항목은 대응표를 만들 대상이 아니다. 게임물은 항목마다 수준을 매기지 않고 "
               "해당 항목의 이름만 나열하므로(4.8절), 이름이 곧 항목이다. v1.6까지 '게임물 대기'로 "

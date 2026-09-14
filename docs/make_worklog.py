@@ -50,7 +50,7 @@ LINKS = [
     ["통합본 데이터 사전", "outputs/integrated_dataset_dictionary.html"],
     ["연령등급·내용정보 EDA", "outputs/eda_report.html · outputs/eda_grac_report.html"],
     ["청소년 이용 제한 특성 분석", "outputs/youth_report.html"],
-    ["인터랙티브 대시보드", "https://gucc-rating-analysis-260910.streamlit.app/"],
+    ["인터랙티브 대시보드", "https://rating-analysis-260910.streamlit.app/"],
     ["주요 분석 인사이트 리포트", "outputs/final_report.html"],
 ]
 
