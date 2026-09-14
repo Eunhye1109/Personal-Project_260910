@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-최종 보고서 생성 — 인사이트 순서로
+최종 보고서 생성: 인사이트 순서로
 
 처음에는 작업한 순서(수집 → 규칙 확인 → 비교)대로 썼다. 그렇게 하니 읽고 나서도
 "그래서 무슨 뜻인가"가 남지 않는다는 지적을 받았다. 맞는 지적이라 다시 짰다.
@@ -63,7 +63,7 @@ def compute() -> dict:
     ga = g[~g["is_canceled"]].dropna(subset=["grade_age"]).copy()
     v: dict = {}
 
-    # ── 결론 1. 게임물 — 무엇이 청소년이용불가를 만드나
+    # ── 결론 1. 게임물: 무엇이 청소년이용불가를 만드나
     yr = ga[ga["is_youth_restricted"] == True]          # noqa: E712
     v["g_n"], v["g_yr_n"] = len(ga), len(yr)
     v["g_yr_pct"] = round(len(yr) / len(ga) * 100, 1)
@@ -87,7 +87,7 @@ def compute() -> dict:
                      round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
     v["plat"] = sorted(plat, key=lambda r: -r[2])
 
-    # 조합별 — 선정성·폭력성·사행성 세 가지의 조합만 본다.
+    # 조합별: 선정성·폭력성·사행성 세 가지의 조합만 본다.
     # 나머지 항목(언어·약물·공포·범죄)은 섞여 있을 수 있다. 세 가지가 등급을 좌우하기 때문이다.
     def masks(df):
         S, V, G = df["내용_선정성"], df["내용_폭력성"], df["내용_사행성"]
@@ -122,7 +122,7 @@ def compute() -> dict:
                         round(float(sub["is_youth_restricted"].mean()) * 100, 1)])
     v["platcombo"] = sorted(pc_rows, key=lambda r: -r[3])
 
-    # 사행성이 어디에 몰려 있나 — 장르와 업체
+    # 사행성이 어디에 몰려 있나: 장르와 업체
     gam_only = ga[ga["내용_사행성"] == 1]
     base_g = ga["genre"].value_counts(normalize=True)
     genre = []
@@ -169,7 +169,7 @@ def compute() -> dict:
                   "com_gam": round(float(ga["내용_사행성"].mean()) * 100, 1),
                   "self_all": round(float((s["grade_age"] == 0).mean()) * 100, 1)}
 
-    # ── 결론 3. 영상물 — 판단이 들어가는 곳
+    # ── 결론 3. 영상물: 판단이 들어가는 곳
     k["cmax"] = k[LV].max(axis=1).astype(int)
     v["k_n"] = len(k)
     ok = (k["cmax"].map(LEVEL_TO_AGE) == k["grade_age"])
@@ -513,7 +513,7 @@ table.deliv .dim{{color:var(--muted);font-size:12.5px}}
   값이다. 따라서 <b>내용정보로 등급을 설명하는 분석은 성립하지 않는다.</b> 동일한 값을 두 번
   사용하는 것과 같기 때문이다. 이를 확인한 후 분석의 초점을 아래 항목으로 전환하였다.</div>
 
-  <h3>판단이 개입하는 유일한 영역 — 신청등급 조정</h3>
+  <h3>판단이 개입하는 유일한 영역: 신청등급 조정</h3>
   <p class="col">신청등급은 결정등급과 성격이 다르다. 신청인이 자체적으로 판단하여 기재한 값이므로
   결정등급과 동일한 값이 아니다. 전체 {v['adj']['n']:,}건 중 {adj_total}%에서 조정이 발생하였다
   (상향 {v['adj']['up']}% · 하향 {v['adj']['down']}%).</p>
@@ -562,7 +562,7 @@ table.deliv .dim{{color:var(--muted);font-size:12.5px}}
   실제로 1차 분석에서 도출한 '보유 항목 수가 많을수록 등급이 상승한다'는 결과는 폐기하였다.
   성인물이 특정 구간에 집중되어 발생한 착시였기 때문이다.</p>
 
-  <h3>미분석 영역 — 서술형 필드 2종</h3>
+  <h3>미분석 영역: 서술형 필드 2종</h3>
   <p class="col">두 자료 모두 서술형 설명 필드를 포함하고 있다. 본 분석에서는 다루지 않았으나
   후속 분석의 대상이 될 수 있다.</p>
   <p class="col"><b>게임물 개요</b>는 29,417건 중 97.4%가 기록되어 있으며 중앙값은 42자이다.
@@ -676,14 +676,14 @@ function hbar(id,rows,opt){{
   }});
 }}
 
-/* 결론1 — 청불 게임의 구성 */
+/* 결론1: 청불 게임의 구성 */
 hbar("c-compose",COMPOSE.map(([n,c,p])=>({{
   label:n, v:p, fill:n==="사행성"?"var(--c2)":"var(--s3)",
   right:`${{p}}%   (${{fmt(c)}}건)`,
   tip:`청소년이용불가 게임 ${{fmt(YRN)}}건 중 ${{n}}을 가진 것 ${{fmt(c)}}건 · ${{p}}%`}})),
   {{max:100,H:22,G:16}});
 
-/* 결론1 — 사행성 유무 */
+/* 결론1: 사행성 유무 */
 (function(){{
   const svg=document.getElementById("c-gam"),L=150,R=230,W=1000-L-R,H=34,G=22;
   [["사행성 있음",GAM.has_n,GAM.has_yr,"var(--c2)"],
@@ -701,14 +701,14 @@ hbar("c-compose",COMPOSE.map(([n,c,p])=>({{
   n.textContent="가로축 = 청소년이용불가 비율 (0~100%)";svg.appendChild(n);
 }})();
 
-/* 결론1 — 항목 하나만 */
+/* 결론1: 항목 하나만 */
 hbar("c-solo",SOLO.map(([n,c,p])=>({{
   label:n, v:p, fill:`var(${{RAMP[Math.min(4,Math.floor(p/22))]}})`,
   right:`${{p}}%   (${{fmt(c)}}건)`,
   tip:`${{n}}만 붙은 게임물 ${{fmt(c)}}건 중 ${{p}}%가 청소년이용불가`}})),
   {{max:100,H:22,G:14}});
 
-/* 결론1 — 플랫폼 */
+/* 결론1: 플랫폼 */
 (function(){{
   const svg=document.getElementById("c-plat"),L=130,R=210,W=1000-L-R,H=17,G=5,ROW=52;
   PLAT.forEach(([name,n,gam,yr],i)=>{{
@@ -726,14 +726,14 @@ hbar("c-solo",SOLO.map(([n,c,p])=>({{
   }});
 }})();
 
-/* 결론1 — 조합별 */
+/* 결론1: 조합별 */
 hbar("c-combo",COMBO.map(([n,c,p,gam])=>({{
   label:n, v:p, fill:gam?"var(--c2)":"var(--s3)",
   right:`${{p}}%   (${{fmt(c)}}건)`,
   tip:`${{n}} ${{fmt(c)}}건 중 ${{p}}%가 청소년이용불가`}})),
   {{max:100,H:22,G:16,L:110,R:210}});
 
-/* 결론1 — 플랫폼 x 조합 */
+/* 결론1: 플랫폼 x 조합 */
 (function(){{
   const svg=document.getElementById("c-platcombo"); if(!svg) return;
   const L=130,T=52,CW=Math.min(128,(1000-L-60)/COMBONAMES.length),CH=38,G=3;
@@ -770,7 +770,7 @@ hbar("c-combo",COMBO.map(([n,c,p,gam])=>({{
   svg.appendChild(note);
 }})();
 
-/* 결론1 — 사행성 장르 / 취소 장르 (같은 모양이라 함수로) */
+/* 결론1: 사행성 장르 / 취소 장르 (같은 모양이라 함수로) */
 function pairBars(id,rows,colA,labA,labB){{
   const svg=document.getElementById(id); if(!svg) return;
   const L=150,R=210,W=1000-L-R,H=17,G=5,ROW=50;
@@ -791,14 +791,14 @@ function pairBars(id,rows,colA,labA,labB){{
 pairBars("c-gamgenre",GAMGENRE,"var(--c2)","사행성 중","전체 중");
 pairBars("c-cancel",CANCELGENRE,"var(--c3)","취소 중","전체 중");
 
-/* 결론1 — 업체별 자사 게임 중 사행성 비율 */
+/* 결론1: 업체별 자사 게임 중 사행성 비율 */
 hbar("c-gament",GAMENT.map(([name,n,tot,p])=>({{
   label:name.length>13?name.slice(0,13)+"…":name, v:p, fill:"var(--c2)",
   right:`${{p}}%   (${{fmt(tot)}}건 중 ${{fmt(n)}}건)`,
   tip:`${{name}} · 낸 게임 ${{fmt(tot)}}건 중 ${{fmt(n)}}건(${{p}}%)이 사행성`}})),
   {{max:100,H:20,G:14,L:150,R:250}});
 
-/* 결론2 — 누가 매기나 */
+/* 결론2: 누가 매기나 */
 (function(){{
   const svg=document.getElementById("c-rater"),L=160,R=200,W=1000-L-R,H=44,G=28;
   [["위원회 심의",RATER.com_n,RATER.com_yr,"var(--c1)"],
@@ -817,7 +817,7 @@ hbar("c-gament",GAMENT.map(([name,n,tot,p])=>({{
   svg.appendChild(n);
 }})();
 
-/* 결론3 — 최고 점수 x 등급 */
+/* 결론3: 최고 점수 x 등급 */
 (function(){{
   const svg=document.getElementById("c-rule"),L=104,T=52,CW=168,CH=46,G=3;
   GRADES.forEach((g,c)=>{{
@@ -847,14 +847,14 @@ hbar("c-gament",GAMENT.map(([name,n,tot,p])=>({{
   svg.appendChild(n);
 }})();
 
-/* 결론3 — 신청 등급별 상향률 */
+/* 결론3: 신청 등급별 상향률 */
 hbar("c-hope",HOPE.map(([g,n,p])=>({{
   label:g, v:p, fill:"var(--c1)",
   right:`${{p}}%   (${{fmt(n)}}건 중)`,
   tip:`${{g}}로 신청한 ${{fmt(n)}}건 중 ${{p}}%가 위로 조정됨`}})),
   {{max:30,H:22,G:22,L:120,R:230}});
 
-/* 결론3 — 종류 x 결정 이유 */
+/* 결론3: 종류 x 결정 이유 */
 (function(){{
   const svg=document.getElementById("c-heat"),L=110,T=48,
         CW=Math.min(118,(1000-L)/REASONS.length),CH=36,G=3;

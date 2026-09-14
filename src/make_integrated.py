@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-통합 분석 Dataset 생성 — 게임물 + 영상물을 한 표로
+통합 분석 Dataset 생성: 게임물 + 영상물을 한 표로
 
 세 갈래로 흩어져 있던 정제본을 같은 모양으로 맞춰 붙인다.
 
@@ -226,7 +226,7 @@ def dictionary_html(df: pd.DataFrame, meta: dict) -> Path:
  td.c {{ font-family:Consolas,monospace; white-space:nowrap; }}
  td.t {{ color:#6b7280; font-family:Consolas,monospace; white-space:nowrap; }}
 </style></head><body><div class="wrap">
-<h1>게임·영상물 등급분류 통합 분석 Dataset — 데이터 사전</h1>
+<h1>게임·영상물 등급분류 통합 분석 Dataset: 데이터 사전</h1>
 <div class="sub">{meta['행']:,}행 · {meta['열']}열 · {meta['기간']} · 생성 {meta['생성']}</div>
 <div class="key"><b>세 개의 자료원을 단일 표로 통합하였다.</b> 게임물 위원회분류
 {meta['게임물_위원회']:,}건, 게임물 자체등급분류 {meta['게임물_자체']:,}건,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-4단계 축① — 매체 간 판정 차이 (게임물 vs 영상물)
+4단계 축①: 매체 간 판정 차이 (게임물 vs 영상물)
 
 강사 피드백의 핵심 주문이었다.
 "같은 내용 수준에서 게임과 영상물의 등급이 어떻게 다른지를 중심으로 분석하면 좋겠습니다."
@@ -19,8 +19,8 @@
    선정성·폭력성·공포·약물. 대사↔언어, 주제/모방위험↔범죄는 재는 대상이 달라 통합하지 않는다.
 
 표본에서 빼는 것
-   영상물  성인물 — 내용정보와 무관하게 사실상 전건 청소년관람불가라 비교를 왜곡한다
-   게임물  등급취소 건 — 신청 내용과 실제가 달라 내용정보가 그 게임물을 설명하지 못한다
+   영상물  성인물: 내용정보와 무관하게 사실상 전건 청소년관람불가라 비교를 왜곡한다
+   게임물  등급취소 건: 신청 내용과 실제가 달라 내용정보가 그 게임물을 설명하지 못한다
    양쪽    등급이 아닌 처분(등급거부 등)
 
 실행
@@ -93,7 +93,7 @@ def load(threshold: int) -> tuple[pd.DataFrame, dict]:
     info = {"영상물_원본": int(len(k)), "게임물_원본": int(len(g)),
             "영상물_파일": kp.name, "게임물_파일": gp.name}
 
-    # 영상물 — 성인물 제외, 등급 있는 건만
+    # 영상물: 성인물 제외, 등급 있는 건만
     k = k[~k["kindName"].astype(str).eq("성인물")].dropna(subset=["grade_age"]).copy()
     kk = pd.DataFrame({"media": "영상물",
                        "is_youth_restricted": k["grade_age"].ge(18).astype(int),
@@ -107,7 +107,7 @@ def load(threshold: int) -> tuple[pd.DataFrame, dict]:
     info["영상물_비교대상밖_제외"] = int(kk["_other"].sum())
     kk = kk[~kk["_other"]].drop(columns="_other")
 
-    # 게임물 — 등급취소 제외, 등급 있는 건만
+    # 게임물: 등급취소 제외, 등급 있는 건만
     g = g[~g["is_canceled"]].dropna(subset=["grade_age"]).copy()
     gg = pd.DataFrame({"media": "게임물",
                        "is_youth_restricted": g["grade_age"].ge(18).astype(int),
@@ -217,7 +217,7 @@ def section_item_effect(df: pd.DataFrame, res: dict) -> None:
 
 
 def section_structure(res: dict) -> None:
-    head("6. 근본적 차이 — 등급 결정 방식의 상이성")
+    head("6. 근본적 차이: 등급 결정 방식의 상이성")
     say("앞의 비율 비교보다 중요한 사항은 두 기관의 등급 결정 구조가 서로 다르다는 점이다.")
     say("")
     say("  [영상물]  등급은 내용정보 7개 항목의 최고값과 동일하다(항등식).")
@@ -258,7 +258,7 @@ def write_html(info: dict) -> Path:
         white-space:pre; overflow-x:auto; background:#fbfbfa; border:1px solid #ececea;
         border-radius:6px; padding:20px; }}
 </style></head><body><div class="wrap">
-<h1>매체 간 등급 판정 차이 — 게임물 vs 영상물</h1>
+<h1>매체 간 등급 판정 차이: 게임물 vs 영상물</h1>
 <div class="sub">영상물 {info['영상물_비교표본']:,}건(성인물 제외) · 게임물 {info['게임물_비교표본']:,}건(등급취소 제외)
  · 생성 {datetime.now():%Y-%m-%d %H:%M}</div>
 <div class="key"><b>두 기관은 등급 결정 방식 자체가 상이하다.</b> 영상물은 내용정보 7개 항목의
@@ -310,7 +310,7 @@ def main() -> None:
     for t, o in outcomes.items():
         if o["평균차이"] is None:
             continue
-        say(f"  {t}단계 기준 — 조합별 평균 차이 {o['평균차이'] * 100:+.1f}%p "
+        say(f"  {t}단계 기준: 조합별 평균 차이 {o['평균차이'] * 100:+.1f}%p "
             f"(절대값 {o['평균절대차이'] * 100:.1f}%p)")
     vals = [o["평균차이"] for o in outcomes.values() if o["평균차이"] is not None]
     if len(vals) == 2 and vals[0] * vals[1] < 0:

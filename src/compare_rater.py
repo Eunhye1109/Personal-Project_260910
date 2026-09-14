@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-4단계 축④ — 누가 등급을 매기느냐에 따라 달라지는가 (위원회 vs 사업자 자체등급분류)
+4단계 축④: 누가 등급을 매기느냐에 따라 달라지는가 (위원회 vs 사업자 자체등급분류)
 
 같은 게임물인데 등급을 매기는 주체가 둘이다.
 
@@ -94,7 +94,7 @@ def s1(a, s, same, lo, hi, res) -> None:
     say(f"    전체 {len(same)+len(s):,}건 중 위원회 심의가 차지하는 비중은 "
         f"{pct(len(same)/(len(same)+len(s)), 2)}에 그친다.")
     say("")
-    say(f"  참고 — 위원회 전 기간 수집분은 {len(a):,}건이고 구간이 "
+    say(f"  참고: 위원회 전 기간 수집분은 {len(a):,}건이고 구간이 "
         f"{a['rated_date'].min():%Y-%m}부터 {a['rated_date'].max():%Y-%m}까지 약 19년이다.")
     say(f"    19년간의 위원회 분류 건수({len(a):,}건)보다 7주간의 자체등급분류 건수({len(s):,}건)가 더 많다.")
     res["규모"] = {"기간": f"{lo:%Y-%m-%d}~{hi:%Y-%m-%d}", "위원회_같은기간": len(same),
@@ -230,7 +230,7 @@ def write_html(res: dict) -> Path:
         white-space:pre; overflow-x:auto; background:#fbfbfa; border:1px solid #ececea;
         border-radius:6px; padding:20px; }}
 </style></head><body><div class="wrap">
-<h1>누가 등급을 매기는가 — 위원회 심의 vs 사업자 자체등급분류</h1>
+<h1>분류 주체별 비교: 위원회 심의 대 사업자 자체등급분류</h1>
 <div class="sub">비교 구간 {r['기간']} · 위원회 {r['위원회_같은기간']:,}건 · 자체등급분류 {r['자체등급분류']:,}건
  · 생성 {datetime.now():%Y-%m-%d %H:%M}</div>
 <div class="key"><b>Open API 로 공개되는 범위는 게임물 등급분류의 극히 일부에 해당한다.</b>
