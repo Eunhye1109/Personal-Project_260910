@@ -150,7 +150,7 @@ SCRIPT = {
 결국 이 12.2% 구간이 자료에서 심의 판단을 확인할 수 있는 유일한 영역입니다.
 
 [예상 질문]
-· 상향을 모형으로 설명해 봤나 → 내용정보와 종별·연도로 상향 여부를 예측하면 AUC 0.825가 나왔습니다.
+· 상향을 모형으로 설명해 봤나 → 내용정보와 종별·연도로 상향 여부를 예측하면 AUC 0.818, 설명력 0.170이 나왔습니다.
   신청등급 자체는 변수로 넣지 않았습니다. 상향은 '최고값이 신청등급보다 높다'와 같은 말이어서
   넣으면 다시 항등식이 되기 때문입니다.""",
 
@@ -250,8 +250,8 @@ SCRIPT = {
 }
 
 
-def write_doc() -> Path:
-    """같은 대본을 인쇄용 Word 문서로도 낸다."""
+def write_doc(prs) -> Path:
+    """발표본에 들어 있는 노트를 그대로 읽어 인쇄용 Word 문서로 낸다."""
     import docx
     from docx.shared import Pt, RGBColor
 
@@ -268,21 +268,29 @@ def write_doc() -> Path:
     r.font.size = Pt(10)
     r.font.color.rgb = RGBColor(0x6B, 0x72, 0x80)
 
-    titles = {1: "표지", 2: "발표 순서", 3: "왜 이 주제인가", 4: "무엇을 얼마나 모았는가",
-              5: "두 기관의 자료를 어떻게 한 표로 합쳤는가", 6: "결론 세 가지",
-              7: "청소년이용불가 게임물의 내용정보 구성", 8: "단독 보유 건으로 좁혀도 동일한 결과",
-              9: "게임물 전체로 일반화할 수 없는 결과", 10: "영상물의 상이한 등급 결정 구조",
-              11: "판단이 개입하는 유일한 영역", 12: "동일 조건 비교 시 게임물의 판정이 더 엄격",
-              13: "청소년 이용 제한 콘텐츠의 특성", 14: "산출물 5종", 15: "대시보드",
-              16: "한계와 후속 과제", 17: "폐기한 결론 두 가지", 18: "정리"}
-
-    for i in sorted(SCRIPT):
+    for i, slide in enumerate(prs.slides, 1):
+        title = ""
+        for shape in slide.shapes:
+            if not shape.has_text_frame or not shape.text_frame.text.strip():
+                continue
+            for para in shape.text_frame.paragraphs:
+                for run in para.runs:
+                    if run.font.size and run.font.size >= Pt(24):
+                        title = shape.text_frame.text.strip().split(chr(10))[0]
+                        break
+                if title:
+                    break
+            if title:
+                break
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(16)
-        r = p.add_run(f"{i}. {titles.get(i, '')}")
+        r = p.add_run(f"{i}. {title}")
         r.font.size, r.font.bold = Pt(13), True
         r.font.color.rgb = RGBColor(0x1F, 0x38, 0x64)
-        for line in SCRIPT[i].strip().split(chr(10)):
+        body = (slide.notes_slide.notes_text_frame.text
+                if slide.has_notes_slide and slide.notes_slide.notes_text_frame is not None
+                else "")
+        for line in (body or "(노트 없음)").split(chr(10)):
             q = doc.add_paragraph()
             q.paragraph_format.space_after = Pt(2)
             run = q.add_run(line)
@@ -295,16 +303,24 @@ def write_doc() -> Path:
     return out
 
 
+# 「분석 방식과 성능 지표」·「대시보드를 만든 이유」 두 장이 중간에 들어가면서 번호가 밀렸다.
+# 그 두 장의 대본은 docs/add_method_slides.py 가 넣는다.
+NEW_INDEX = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11,
+             12: 13, 13: 14, 14: 15, 15: 17, 16: 18, 17: 19, 18: 20}
+
+
 def main() -> None:
     prs = Presentation(DECK)
+    total = len(prs.slides._sldIdLst)
+    place = NEW_INDEX if total >= 20 else {k: k for k in SCRIPT}
     n = 0
-    for i, slide in enumerate(prs.slides, 1):
-        if i in SCRIPT:
-            slide.notes_slide.notes_text_frame.text = SCRIPT[i].strip()
+    for src, dst in place.items():
+        if src in SCRIPT and dst <= total:
+            prs.slides[dst - 1].notes_slide.notes_text_frame.text = SCRIPT[src].strip()
             n += 1
     prs.save(DECK)
     print(f"대본 {n}장 기록: {DECK.name}")
-    print(f"인쇄용 문서: {write_doc().name}")
+    print(f"인쇄용 문서: {write_doc(prs).name}")
 
 
 if __name__ == "__main__":
