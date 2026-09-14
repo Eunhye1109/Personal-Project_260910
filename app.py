@@ -16,7 +16,7 @@
 리포트와 화면이 동일한 수치를 제시하도록 하기 위한 구조이다.
 
 **색은 역할로 정한다** (검증된 기본 팔레트, 색맹 대비 검사 통과)
-  · 영상물·위원회 = 파랑, 게임물 = 주황, 자체등급분류 = 보라 — 화면을 옮겨도 색이 바뀌지 않는다
+  · 영상물·위원회 = 파랑, 게임물 = 주황, 자체등급분류 = 보라. 화면을 옮겨도 색이 바뀌지 않는다
   · 크기(교차표·히트맵)는 한 색의 밝기 단계로만. 무지개 배색을 쓰지 않는다
   · 상향/하향처럼 방향이 있는 것만 빨강↔파랑에 중립 회색
 
@@ -50,7 +50,7 @@ AXIS = "#c3c2b7"
 
 BLUE, ORANGE, VIOLET, RED = "#2a78d6", "#eb6834", "#4a3aa7", "#e34948"
 COLOR = {"영상물": BLUE, "게임물": ORANGE, "위원회": ORANGE, "자체등급분류": VIOLET}
-# 방향이 있는 것 — 두 극은 빨강↔파랑, 가운데는 중립 회색
+# 방향이 있는 것: 두 극은 빨강↔파랑, 가운데는 중립 회색
 ADJUST_COLOR = {"신청대로": MUTED, "상향": RED, "하향": BLUE}
 
 # 크기를 나타내는 색은 한 색의 밝기 단계로만 (무지개 금지)
@@ -80,7 +80,7 @@ pio.templates.default = "gucc"
 st.markdown(f"""<style>
   .block-container {{ padding-top: 2.2rem; max-width: 1180px; }}
   h1, h2, h3 {{ letter-spacing: -0.02em; }}
-  /* 인사이트 — 이 화면이 데이터에서 읽어낸 것 */
+  /* 인사이트: 해당 화면의 분석 결과 요약 */
   .insight {{
       background: #f6f8fc; border: 1px solid #e3e9f3; border-left: 3px solid {BLUE};
       border-radius: 8px; padding: 0.95rem 1.15rem; margin: 0.2rem 0 1.4rem;
@@ -110,7 +110,7 @@ def load_all():
 
 
 def pct(x: float, d: int = 1) -> str:
-    return "—" if pd.isna(x) else f"{x * 100:.{d}f}%"
+    return "해당 없음" if pd.isna(x) else f"{x * 100:.{d}f}%"
 
 
 def note(text: str) -> None:
@@ -141,7 +141,7 @@ def show(fig, height: int = 360) -> None:
 
 
 def empty_guard(df, msg: str = "해당 조건에 부합하는 건이 없습니다. 좌측 필터의 범위를 확대하시기 바랍니다.") -> bool:
-    """N-4 — 빈 화면 대신 안내 문구."""
+    """N-4: 빈 화면 대신 안내 문구."""
     if df is None or len(df) == 0:
         st.info(msg)
         return True
@@ -184,7 +184,7 @@ st.sidebar.caption("영상물등급위원회·게임물관리위원회 Open API 
 
 
 def scope_line(media: str = "영상물") -> str:
-    parts = [f"{media} {len(K if media == '영상물' else G):,}건", f"{years[0]}–{years[1]}"]
+    parts = [f"{media} {len(K if media == '영상물' else G):,}건", f"{years[0]}년부터 {years[1]}년까지"]
     if media == "영상물":
         if drop_adult:
             parts.append("성인물 제외")
@@ -197,7 +197,7 @@ def scope_line(media: str = "영상물") -> str:
 
 # ───────────────────────────────────────── 화면 1
 def screen_rule() -> None:
-    st.header("등급 결정 기준 — 등급은 무엇을 기준으로 결정되는가")
+    st.header("등급 결정 기준: 등급은 무엇을 기준으로 결정되는가")
     note(scope_line())
     if empty_guard(K):
         return
@@ -247,10 +247,10 @@ def screen_rule() -> None:
 
 # ───────────────────────────────────────── 화면 2
 def screen_reason() -> None:
-    st.header("등급 상향 요인 항목 — 종별에 따른 차이")
+    st.header("등급 상향 요인 항목: 종별에 따른 차이")
     cov = calc.reason_coverage(K)
-    note(f"{scope_line()} 중 결정사유가 기록된 {cov['기록건수']:,}건({pct(cov['기록률'])}) · "
-         f"기록 구간 {cov['시작']}–{cov['끝']}")
+    note(f"{scope_line()} · 결정사유가 기록된 {cov['기록건수']:,}건({pct(cov['기록률'])}) · "
+         f"기록 구간 {cov['시작']}년부터 {cov['끝']}년까지")
     if cov["기록건수"] == 0:
         st.info("해당 조건에는 결정사유가 기록된 건이 없습니다. 대상 기간을 확대하시기 바랍니다.")
         return
@@ -298,8 +298,8 @@ def screen_reason() -> None:
 
 # ───────────────────────────────────────── 화면 3
 def screen_adjust() -> None:
-    st.header("신청등급 대비 조정 — 신청등급과 결정등급의 차이")
-    note(f"{scope_line()} 중 신청등급이 기록된 건")
+    st.header("신청등급 대비 조정: 신청등급과 결정등급의 차이")
+    note(f"{scope_line()} · 신청등급이 기록된 건")
     if empty_guard(K):
         return
     insight(calc.insight_adjust(K))
@@ -346,7 +346,7 @@ def screen_adjust() -> None:
 
 # ───────────────────────────────────────── 화면 4
 def screen_media() -> None:
-    st.header("매체 간 판정 차이 — 동일한 내용 수준에서의 등급 비교")
+    st.header("매체 간 판정 차이: 동일한 내용 수준에서의 등급 비교")
     st.markdown(
         "두 기관은 내용정보를 서로 다른 형태로 제공한다. 영상물등급위원회는 항목별 1~5단계 수준을, "
         "게임물관리위원회는 해당 항목의 명칭만을 제시한다. 두 체계는 직접 비교가 불가능하므로 "
@@ -367,7 +367,7 @@ def screen_media() -> None:
     both, info = calc.media_frame(K, G, th)
     note(f"영상물 {info['영상물_비교표본']:,}건(성인물·주제/대사/모방위험 보유 {info['영상물_제외']:,}건 제외) · "
          f"게임물 {info['게임물_비교표본']:,}건(등급취소·언어/범죄/사행성 보유 {info['게임물_제외']:,}건 제외) · "
-         f"{years[0]}–{years[1]}")
+         f"{years[0]}년부터 {years[1]}년까지")
     if empty_guard(both):
         return
     cc = calc.combo_compare(both)
@@ -417,7 +417,7 @@ def screen_media() -> None:
             {"영상물": "{:.1%}", "게임물": "{:.1%}", "차이": "{:+.1%}"}),
             width="stretch", hide_index=True)
 
-    st.info("**한계** — 3단계라는 절단 기준 자체에 실증적 근거가 있는 것은 아니다. 영상물의 "
+    st.info("**한계**: 3단계라는 절단 기준 자체에 실증적 근거가 있는 것은 아니다. 영상물의 "
             "5단계 체계를 게임물의 보유·미보유 체계에 대응시키려면 특정 지점에서 절단이 "
             "필요하나, 그 지점은 데이터로부터 도출되지 않는다. 따라서 '게임물의 판정이 더 "
             "엄격하다'는 결론은 이 절단 기준을 전제로 할 때에만 성립한다.", icon="ℹ️")
@@ -425,9 +425,9 @@ def screen_media() -> None:
 
 # ───────────────────────────────────────── 화면 5
 def screen_rater() -> None:
-    st.header("공개 데이터의 포괄 범위 — 게임물 등급분류 전체 대비 비중")
+    st.header("공개 데이터의 포괄 범위: 게임물 등급분류 전체 대비 비중")
     same, lo, hi = calc.rater_period(grac, selfd)
-    note(f"자체등급분류 비교군은 {lo:%Y-%m-%d}–{hi:%Y-%m-%d} 약 7주간의 자료에 한정되므로 "
+    note(f"자체등급분류 비교군은 {lo:%Y-%m-%d}부터 {hi:%Y-%m-%d}까지 약 7주간의 자료에 한정되므로 "
          f"위원회 분류분도 동일 기간으로 한정하여 비교한다 · 본 화면은 좌측 기간 필터를 적용하지 않는다")
     insight(calc.insight_rater(grac, selfd))
 

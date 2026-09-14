@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-대시보드 계산부 — 화면(app.py)이 부르는 집계 함수만 모아 둔다.
+대시보드 계산부: 화면(app.py)이 부르는 집계 함수만 모아 둔다.
 
 Streamlit 없이도 부를 수 있도록 순수 pandas 로만 짰다. 화면을 띄우지 않고
 `python src/dashboard_calc.py` 로 숫자가 리포트와 맞는지 확인할 수 있다.
@@ -401,7 +401,7 @@ def insight_reason(df: pd.DataFrame) -> list[str]:
     if len(tab):
         picks = [f"{k} {tab.loc[k].idxmax()} {tab.loc[k].max():.0%}"
                  for k in tab.index[:4]]
-        out.append("종별에 따라 뚜렷한 차이가 확인된다 — " + " · ".join(picks) + ". "
+        out.append("종별에 따라 뚜렷한 차이가 확인된다: " + " · ".join(picks) + ". "
                    "이는 최고값 규칙에서 자동으로 도출되는 결과가 아니라 콘텐츠 성격의 차이이다.")
     out.append(f"다만 해당 필드는 {cov['기록건수']:,}건({cov['기록률']:.0%})에만 기록되어 있으며 "
                f"{cov['시작']}~{cov['끝']} 구간에 집중되어 있다. **전 기간으로 일반화할 수 없다.**")
@@ -445,7 +445,7 @@ def insight_media(both: pd.DataFrame, cc: pd.DataFrame, threshold: int) -> list[
                f"게임물 {top['게임물']:.1%}({top['차이'] * 100:+.1f}%p)이다.")
     solo = solo_compare(both)
     if len(solo):
-        out.append("단독 보유 건에 한정하여도 동일한 방향이 확인된다 — "
+        out.append("단독 보유 건에 한정하여도 동일한 방향이 확인된다: "
                    + " · ".join(f"{r['항목']} {r['영상물']:.1%}→{r['게임물']:.1%}"
                                 for _, r in solo.iterrows()) + ".")
     if threshold == 4:
