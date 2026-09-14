@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.oxml.ns import qn
 from pptx.util import Inches
 
-SRC = r"C:\Users\User\rating_analysis\docs\발표자료_수기수정본_백업.pptx"
+SRC = r"C:\Users\User\rating_analysis\docs\[보관] 발표자료_수기수정_원본_260914.pptx"
 DST = r"C:\Users\User\rating_analysis\docs\[BI 분석가 과정] 발표자료_260914_최은혜.pptx"
 
 # ── 바꿀 문장: 원문 → 명사형 문어체
