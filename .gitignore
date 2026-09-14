@@ -40,7 +40,7 @@ outputs/*.xlsx
 ~$*.xlsx
 
 # 개인 PC 홈 폴더 설정 사본이 실수로 들어오는 경우
-.gucc_rating_analysis.env
+.rating_analysis.env
 
 # 통합본 CSV 는 59MB 라 저장소에 두지 않는다. src/make_integrated.py 로 다시 만들 수 있고
 # NAS 사본에는 그대로 있다.

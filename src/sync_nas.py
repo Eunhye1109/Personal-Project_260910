@@ -2,7 +2,7 @@
 """
 NAS(공유 드라이브) 사본 갱신
 
-`Y:\\2. 정책기획팀\\기타\\gucc_rating_analysis` 로 프로젝트를 복사한다.
+`Y:\\2. 정책기획팀\\기타\\rating_analysis` 로 프로젝트를 복사한다.
 다른 스크립트가 끝날 때 호출해 산출물이 자동으로 NAS에 올라가게 한다.
 
 인증키 파일(.env)은 반드시 제외한다. 그 폴더는 정책기획팀 공유 폴더라
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-NAS = Path(r"Y:\2. 정책기획팀\기타\gucc_rating_analysis")
+NAS = Path(r"Y:\2. 정책기획팀\기타\rating_analysis")
 SECRET = ".env"
 
 

@@ -11,7 +11,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-OUT_DIR = r"C:\Users\User\gucc_rating_analysis\docs"
+OUT_DIR = r"C:\Users\User\rating_analysis\docs"
 OUT_FILE = os.path.join(OUT_DIR, "PRD_게임영상물_등급분류_분석_v1.7_260914.docx")
 
 KO_FONT = "맑은 고딕"

@@ -92,12 +92,12 @@
     90/135  저장 1,111,015바이트
     91/135  저장 1,113,536바이트
 Traceback (most recent call last):
-  File "C:\Users\User\gucc_rating_analysis\src\collect_kmrb.py", line 145, in <module>
+  File "C:\Users\User\rating_analysis\src\collect_kmrb.py", line 145, in <module>
     time.sleep(DELAY_SEC)
     ^^
-  File "C:\Users\User\gucc_rating_analysis\src\collect_kmrb.py", line 114, in main
+  File "C:\Users\User\rating_analysis\src\collect_kmrb.py", line 114, in main
     {child.tag: (child.text or "").strip() for child in item}
            ^^^^^^^^^^^^^^^^^^
-  File "C:\Users\User\gucc_rating_analysis\src\collect_kmrb.py", line 58, in request_page
+  File "C:\Users\User\rating_analysis\src\collect_kmrb.py", line 58, in request_page
     if _sent >= MAX_REQUESTS_PER_RUN:
 RuntimeError: 92페이지 3회 실패 — ConnectionError: HTTPSConnectionPool(host='apis.data.go.kr', port=443): Max retries exceeded with url: /B551008/video_v2/video_search_v2?serviceKey=<SERVICE_KEY>&pageNo=92&numOfRows=1000 (Caused by NameResolutionError("HTTPSConnection(host='apis.data.go.kr', port=443): Failed to resolve 'apis.data.go.kr' ([Errno 11001] getaddrinfo failed)"))

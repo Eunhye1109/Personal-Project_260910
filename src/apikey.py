@@ -8,7 +8,7 @@
 
     1) OS 환경변수
     2) 프로젝트 폴더의 .env        ← 사무실 PC에서 쓰던 기존 방식(있으면 그대로 사용)
-    3) 개인 PC의 홈 폴더 파일       ← ~/.gucc_rating_analysis.env  (NAS로 복사되지 않음)
+    3) 개인 PC의 홈 폴더 파일       ← ~/.rating_analysis.env  (NAS로 복사되지 않음)
     4) 없으면 화면에서 물어보고, 답을 3)에 저장한다
 
 집에서 NAS 폴더를 열어 그대로 실행하면 4)가 뜬다. 한 번 붙여넣으면
@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ENV = ROOT / ".env"
-HOME_ENV = Path.home() / ".gucc_rating_analysis.env"
+HOME_ENV = Path.home() / ".rating_analysis.env"
 
 
 def _read_env_file(path: Path) -> dict[str, str]:
@@ -43,7 +43,7 @@ def _append_home_env(name: str, value: str) -> None:
     existing[name] = value
     body = "\n".join(f"{k}={v}" for k, v in existing.items()) + "\n"
     HOME_ENV.write_text(
-        "# gucc_rating_analysis 개인 설정 — 이 파일은 NAS로 복사되지 않는다.\n" + body,
+        "# rating_analysis 개인 설정 — 이 파일은 NAS로 복사되지 않는다.\n" + body,
         encoding="utf-8",
     )
     try:                                   # 다른 사용자가 못 읽게 (윈도우에서는 무시될 수 있음)

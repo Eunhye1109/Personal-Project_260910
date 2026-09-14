@@ -62,7 +62,7 @@ FONT = 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif'
 _axis = dict(showgrid=False, zeroline=False, linecolor=AXIS, linewidth=1,
              ticks="outside", tickcolor=AXIS, ticklen=4,
              tickfont=dict(color=MUTED, size=12), title_font=dict(color=SECOND, size=12))
-pio.templates["gucc"] = go.layout.Template(layout=go.Layout(
+pio.templates["report"] = go.layout.Template(layout=go.Layout(
     font=dict(family=FONT, size=13, color=INK),
     paper_bgcolor=SURFACE, plot_bgcolor=SURFACE,
     colorway=[BLUE, ORANGE, "#1baf7a", "#eda100", "#e87ba4", "#008300", VIOLET, RED],
@@ -75,7 +75,7 @@ pio.templates["gucc"] = go.layout.Template(layout=go.Layout(
     bargap=0.3, bargroupgap=0.06, barcornerradius=4,
     colorscale=dict(sequential=BLUE_SCALE),
 ))
-pio.templates.default = "gucc"
+pio.templates.default = "report"
 
 st.markdown(f"""<style>
   .block-container {{ padding-top: 2.2rem; max-width: 1180px; }}

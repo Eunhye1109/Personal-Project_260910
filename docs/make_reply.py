@@ -22,7 +22,7 @@ from make_prd import (init_doc, add_page_number_footer, h, para, bullet, table,
                       callout, set_run_font, ACCENT, MUTED)          # noqa: E402
 from docx.enum.text import WD_ALIGN_PARAGRAPH                        # noqa: E402
 
-OUT_DIR = r"C:\Users\User\gucc_rating_analysis\docs"
+OUT_DIR = r"C:\Users\User\rating_analysis\docs"
 OUT_FILE = os.path.join(OUT_DIR, "강사피드백_회신_260908.docx")
 
 

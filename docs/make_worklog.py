@@ -16,7 +16,7 @@ from make_prd import (init_doc, h, para, bullet, table,
                       set_run_font, ACCENT, MUTED)                   # noqa: E402
 from docx.enum.text import WD_ALIGN_PARAGRAPH                        # noqa: E402
 
-OUT_DIR = r"C:\Users\User\gucc_rating_analysis\docs"
+OUT_DIR = r"C:\Users\User\rating_analysis\docs"
 DAY = "20260914"   # 이 값만 바꾸면 파일명과 제목이 함께 따라간다
 OUT_FILE = os.path.join(OUT_DIR, "[BI 분석가 과정] 작업기록_%s_최은혜.docx" % DAY[2:])
 
